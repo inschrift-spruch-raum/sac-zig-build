@@ -1,6 +1,6 @@
 #pragma once
 
-#define SAC_VERSION "0.7.17"
+#define SAC_VERSION "0.7.18"
 
 #define TOSTRING_HELPER(x) #x
 #define TOSTRING(x) TOSTRING_HELPER(x)
