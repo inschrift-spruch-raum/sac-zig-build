@@ -1,9 +1,8 @@
-#ifndef LPC_H
-#define LPC_H
+#pragma once // LPC_H
 
 #include "../common/utils.h"
 
-//#define INIT_COV
+constexpr bool INIT_COV = false;
 
 class OLS {
   public:
@@ -16,9 +15,9 @@ class OLS {
     {
       km=0;
       pred=0.0;
-      #ifdef INIT_COV
+      if constexpr (INIT_COV) {
         for (int i=0;i<n;i++) mcov[i][i]=1.0;
-      #endif
+      }
     }
     double Predict()
     {
@@ -54,6 +53,3 @@ class OLS {
     double beta_pow,beta_add;
     RunWeight esum;
 };
-
-
-#endif // LPC_H

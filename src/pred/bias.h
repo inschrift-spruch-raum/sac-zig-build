@@ -1,15 +1,14 @@
-#ifndef BIAS_H
-#define BIAS_H
+#pragma once // BIAS_H
 
 #include "../global.h"
 #include "../common/utils.h"
 #include "lms.h"
 
-#define BIAS_ROUND_PRED 1
-#define BIAS_MIX_N 3
-#define BIAS_MIX_NUMCTX 4
-#define BIAS_MIX 0
-#define BIAS_NAVG 5
+constexpr bool BIAS_ROUND_PRED = true;
+constexpr int BIAS_MIX_N = 3;
+constexpr int BIAS_MIX_NUMCTX = 4;
+constexpr int BIAS_MIX = 0;
+constexpr int BIAS_NAVG = 5;
 
 class BiasEstimator {
   class CntAvg {
@@ -123,11 +122,12 @@ class BiasEstimator {
       return py;
     }
     void Update(double val) {
-      #ifdef BIAS_ROUND_PRED
-        const double delta=val-std::round(px);
-      #else
-        const double delta=val-px;
-      #endif
+      double delta;
+      if constexpr (BIAS_ROUND_PRED) {
+        delta=val-std::round(px);
+      } else {
+        delta=val-px;
+      }
       miscUtils::RollBack(hist_input,val);
       miscUtils::RollBack(hist_delta,delta);
 
@@ -165,6 +165,3 @@ class BiasEstimator {
     const double sigma;
     RunMeanVar run_mv;
 };
-
-
-#endif // BIAS_H

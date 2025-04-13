@@ -1,9 +1,8 @@
-#ifndef DE_H
-#define DE_H
+#pragma once // DDS_H
 
 #include "opt.h"
 
-#define DE_GENF_JADE
+constexpr bool DE_GENF_JADE = true;
 
 // Differential Evolution
 class OptDE : public Opt {
@@ -40,12 +39,13 @@ class OptDE : public Opt {
     }
     double gen_F(double mF)
     {
-      #ifdef DE_GENF_JADE
-        double t=rand.event(1./3.)?
+      double t;
+      if constexpr (DE_GENF_JADE) {
+        t = rand.event(1./3.)?
           rand.r_int(0,1.2):rand.r_norm(mF,0.1);
-      #else
-        double t=rand.r_norm(mF,0.1);
-      #endif
+      } else {
+        t = rand.r_norm(mF,0.1);
+      }
 
       return std::clamp(t,0.01,1.2);
     }
@@ -56,7 +56,3 @@ class OptDE : public Opt {
     const DECfg &cfg;
     bool verbose;
 };
-
-#endif // DDS_H
-
-

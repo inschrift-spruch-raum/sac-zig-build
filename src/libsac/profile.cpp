@@ -1,7 +1,5 @@
 #include "profile.h"
 
-//#define LMS_ADA
-
 int SacProfile::LoadBaseProfile()
 {
   SacProfile &profile=*this;
@@ -79,19 +77,19 @@ int SacProfile::LoadBaseProfile()
   //profile.Set(51,0.0,1.0,0.8); //pow_decay
   //profile.Set(52,0.0,1.0,0.8); //pow_decay
 
-  #ifdef LMS_ADA
+  if constexpr (LMS_ADA) {
     profile.Set(47,0.95,0.99,0.97); // beta
     profile.Set(49,0.95,0.99,0.97); // beta
 
     profile.Set(51,0.0,0.025,0.001); //nu
     profile.Set(52,0.0,0.025,0.001); //nu
-  #else
+  } else {
     profile.Set(47,0.98,1,1.0); // mu_decay
     profile.Set(49,0.98,1,1.0); // mu_decay
 
     profile.Set(51,0.0,1.0,0.8); //pow_decay
     profile.Set(52,0.0,1.0,0.8); //pow_decay
-  #endif
+  }
 
   return profile.coefs.size();
   //profile.Set(53,0.0,1.0,1.0);

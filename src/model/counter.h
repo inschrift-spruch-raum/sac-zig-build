@@ -1,7 +1,7 @@
-#ifndef COUNTER_H
-#define COUNTER_H
+#pragma once // COUNTER_H
 
 #include "model.h"
+#include <algorithm>
 
 class Prob16Counter
 {
@@ -19,9 +19,9 @@ class LinearCounter16 : public Prob16Counter
   public:
     using Prob16Counter::Prob16Counter;
     //p'=(1-w0)*p+w0*((1-w1)*bit+w1*0.5)
-    #define wh(w) ((w*PSCALEh+PSCALEh)>>PBITS)
     void update(int bit,const int w0,const int w1)
     {
+      auto wh = [](int w) {return ((w * PSCALEh + PSCALEh)>>PBITS);};
       int h=(w0*wh(w1))>>PBITS;
       int p=idiv((PSCALE-w0)*p1,PBITS);
       p+=bit?w0-h:h;
@@ -134,7 +134,6 @@ static const uint8_t State_table[256][4]={
   {140,248, 0,39},{249,135,40, 0},{250, 69,39, 1},{ 80,251, 1,39}, // 244-247
   {140,252, 0,40},{249,135,41, 0},{250, 69,40, 1},{ 80,251, 1,40}, // 248-251
   {140,252, 0,41}};
-#define nex(state,sel) State_table[state][sel]
 
 class StateProb {
 public:
@@ -147,5 +146,3 @@ public:
     return ((n1+1)*PSCALE)/(n0+n1+2);
   };
 };
-
-#endif // COUNTER_H

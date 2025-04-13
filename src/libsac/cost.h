@@ -1,8 +1,8 @@
-#ifndef COST_H
-#define COST_H
+#pragma once
 
 #include "vle.h"
 #include "../common/utils.h"
+#include <bit>
 #include <cmath>
 
 class CostFunction {
@@ -50,13 +50,13 @@ class CostGolomb : public CostFunction {
       if (buf.size()) {
         int64_t nbits=0;
         for (const auto sval:buf) {
-          const auto m=std::max(static_cast<int32_t>(rm.sum),1);
+          const uint32_t m = std::max(static_cast<int32_t>(rm.sum),1);
           const auto uval=MathUtils::S2U(sval);
           int q=uval/m;
           //int r=val-q*m;
           nbits+=(q+1);
           if (m>1) {
-            nbits+=BitUtils::count_bits32(m);
+            nbits += std::bit_width(m);
           }
           rm.Update(uval);
         }
@@ -130,7 +130,7 @@ class CostBitplane : public CostFunction {
   {
     int numsamples=buf.size();
     std::vector<int32_t> ubuf(numsamples);
-    int vmax=0;
+    int vmax = 1;
     for (int i=0;i<numsamples;i++) {
        int val=MathUtils::S2U(buf[i]);
        if (val>vmax) vmax=val;
@@ -140,14 +140,14 @@ class CostBitplane : public CostFunction {
     BufIO iobuf;
     RangeCoderSH rc(iobuf);
     rc.Init();
-    BitplaneCoder bc_rc(MathUtils::iLog2(vmax),numsamples);
+    BitplaneCoder bc_rc(ilogb(vmax),numsamples);
     bc_rc.Encode(rc.encode_p1,&ubuf[0]);
     rc.Stop();
     double c0=iobuf.GetBufPos();
     #else
 
     StaticBitModel bm;
-    BitplaneCoder bc_bit(MathUtils::iLog2(vmax),numsamples);
+    BitplaneCoder bc_bit(ilogb(vmax),numsamples);
     bc_bit.Encode(bm.EncodeP1_Func(),&ubuf[0]);
 
     double c0=bm.nbits/8.0;
@@ -155,5 +155,3 @@ class CostBitplane : public CostFunction {
     return c0;
   }
 };
-
-#endif

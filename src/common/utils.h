@@ -109,7 +109,7 @@ namespace StrUtils {
 
 namespace MathUtils {
 
-#if defined(USE_AVX512)
+#ifdef __AVX512F__
 inline double dot(const double* x,const double* y, std::size_t n)
 {
   __m512d sum = _mm512_setzero_pd();
@@ -129,7 +129,7 @@ inline double dot(const double* x,const double* y, std::size_t n)
 
   return total;
 }
-#elif defined(USE_AVX256)
+#elifdef __AVX2__
 
 inline double dot(const double* x,const double* y, std::size_t n)
 {
@@ -270,12 +270,7 @@ class Cholesky
         } else
           return c;
       }
-
-      inline int iLog2(int val) {
-        int nbits=0;
-        while (val>>=1) nbits++;
-        return nbits;
-      }
+      
       inline double SumDiff(const std::vector<double> &v1,const std::vector<double> &v2)
       {
          if (v1.size()!=v2.size()) return -1;
@@ -416,13 +411,4 @@ namespace BitUtils {
   void put16LH(uint8_t *buf,uint16_t val);
   void put32LH(uint8_t *buf,uint32_t val);
   std::string U322Str(uint32_t val);
-
-  inline int32_t count_bits32(uint32_t m)
-  {
-    #ifdef __GNUC__
-      return m == 0 ? 0 : (32 - __builtin_clz(m));
-    #else
-      return std::bit_width(m);
-    #endif
-  }
 }

@@ -2,6 +2,14 @@
 
 #include <cstdint>
 
+/*
+ * Bit-manipulation functions defined by the MD5 algorithm
+ */
+ inline uint32_t F(uint32_t &X, uint32_t &Y, uint32_t &Z) {return ((X & Y) | (~X & Z));}
+ inline uint32_t G(uint32_t &X, uint32_t &Y, uint32_t &Z) {return ((X & Z) | (Y & ~Z));}
+ inline uint32_t H(uint32_t &X, uint32_t &Y, uint32_t &Z) {return (X ^ Y ^ Z);}
+ inline uint32_t I(uint32_t &X, uint32_t &Y, uint32_t &Z) {return (Y ^ (X | ~Z));}
+
 namespace MD5 {
   struct MD5Context{
     uint64_t size;        // Size of input in bytes

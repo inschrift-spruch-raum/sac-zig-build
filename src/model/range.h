@@ -1,8 +1,8 @@
-#ifndef RANGE_H
-#define RANGE_H
+#pragma once // RANGE_H
 
 #include "../common/bufio.h"
 #include "model.h"
+#include <cstdint>
 #include <functional>
 
 class RangeCoderBase {
@@ -16,10 +16,23 @@ class RangeCoderBase {
 };
 
 //#define SCALE_RANGE (((PSCALE-p1)*uint64_t(range)) >> PBITS) // 64 bit shift
-#define SCALE_RANGE ((uint64_t(range)*((PSCALE-p1)<<(32-PBITS)))>>32)
+inline uint32_t SCALE_RANGE(uint32_t &range, uint32_t p1) {return ((uint64_t(range)*((PSCALE-p1)<<(32-PBITS)))>>32);}
 
-#define RANGE_ENC_NORMALIZE  while ((low ^ (low+range))<TOP || (range<BOT && ((range= -(int)low & (BOT-1)),1))) buf.PutByte(low>>24),range<<=8,low<<=8;
-#define RANGE_DEC_NORMALIZE  while ((low ^ (low+range))<TOP || (range<BOT && ((range= -(int)low & (BOT-1)),1))) (code<<=8)+=buf.GetByte(),range<<=8,low<<=8;
+inline void RANGE_ENC_NORMALIZE(BufIO &buf, uint32_t &low, uint32_t &range, uint32_t TOP, uint32_t BOT) { 
+  while ((low ^ (low+range))<TOP || (range<BOT && ((range= -(int)low & (BOT-1)),1))) {
+    buf.PutByte(low>>24);
+    range<<=8;
+    low<<=8;
+  }
+}
+
+inline void RANGE_DEC_NORMALIZE(BufIO &buf, uint32_t &low, uint32_t &range, uint32_t &code, uint32_t TOP, uint32_t BOT)  {
+  while ((low ^ (low+range))<TOP || (range<BOT && ((range= -(int)low & (BOT-1)),1))) {
+    (code<<=8)+=buf.GetByte();
+    range<<=8;
+    low<<=8;
+  }
+}
 
 // Carryless RangeCoder
 // derived from Dimitry Subbotin (public domain)
@@ -58,5 +71,3 @@ class RangeCoderSH : public RangeCoderBase {
     uint32_t range,code,FFNum,Cache;
     uint64_t lowc;
 };
-
-#endif // RANGE_H

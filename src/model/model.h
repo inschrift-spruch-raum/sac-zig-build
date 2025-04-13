@@ -1,17 +1,14 @@
-#ifndef MODEL_H
-#define MODEL_H
+#pragma once // MODEL_H
 
-#include <algorithm>
+#include <cstdint>
 
 // probability precision
-#define PBITS   (15)
-#define PSCALE  (1<<PBITS)
-#define PSCALEh (PSCALE>>1)
-#define PSCALEm (PSCALE-1)
+constexpr int32_t PBITS = 15;
+constexpr int32_t PSCALE = 1 << PBITS;
+constexpr int32_t PSCALEh = PSCALE >> 1;
+constexpr int32_t PSCALEm = PSCALE - 1;
 
 // weight precision
-#define WBITS   (16)
-#define WSCALE  (1<<WBITS)
-#define WSCALEh (WSCALE>>1)
-
-#endif // MODEL_H
+constexpr int32_t WBITS = 16;
+constexpr int32_t WSCALE = 1 << WBITS;
+constexpr int32_t WSCALEh = WSCALE >> 1;

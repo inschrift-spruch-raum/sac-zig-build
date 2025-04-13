@@ -26,7 +26,7 @@ class SparsePCM {
 public:
   SparsePCM(): minval(0), maxval(0), fraction_used(0.0), fraction_cost(0.0) {}
 
-  void Analyse(std::span<const int32_t> buf) {
+  void Analyse(std::span<const int32_t> &buf) {
     // 一次性找到最小值和最大值
     if(buf.empty()) {
       minval = maxval = 0;

@@ -49,14 +49,6 @@ void MD5::Init(MD5Context *ctx){
 }
 
 /*
- * Bit-manipulation functions defined by the MD5 algorithm
- */
-uint32_t F(uint32_t X, uint32_t Y, uint32_t Z) {return ((X & Y) | (~X & Z));}
-uint32_t G(uint32_t X, uint32_t Y, uint32_t Z) {return ((X & Z) | (Y & ~Z));}
-uint32_t H(uint32_t X, uint32_t Y, uint32_t Z) {return (X ^ Y ^ Z);}
-uint32_t I(uint32_t X, uint32_t Y, uint32_t Z) {return (Y ^ (X | ~Z));}
-
-/*
  * Add some amount of input to the context
  *
  * If the input fills out a block of 512 bits, apply the algorithm (md5Step)

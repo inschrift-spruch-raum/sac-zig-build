@@ -1,6 +1,8 @@
 #pragma once
 
-#define SAC_VERSION "0.7.18"
+#include <string_view>
+
+constexpr std::string_view SAC_VERSION = "0.7.18";
 
 #define TOSTRING_HELPER(x) #x
 #define TOSTRING(x) TOSTRING_HELPER(x)
@@ -9,7 +11,7 @@
 #  define COMPILER                                                             \
     "clang " TOSTRING(__clang_major__) "." TOSTRING(__clang_minor__            \
     ) "." TOSTRING(__clang_patchlevel__)
-#elif defined(__GNUC__)
+#elifdef __GNUC__
 #  define COMPILER                                                             \
     "gcc" TOSTRING(__GNUC__) "." TOSTRING(__GNUC_MINOR__                       \
     ) "." TOSTRING(__GNUC_PATCHLEVEL__)
@@ -25,8 +27,12 @@
 #  define ARCHITECTURE "Unknown"
 #endif
 
-#if defined(USE_AVX256)
-#  define AVX2_STATE "ON"
+#ifdef __AVX512F__
+#  define AVX_STATE "AVX-512"
+#elifdef __AVX2__
+#  define AVX_STATE "AVX2"
+#elifdef __AVX__
+#  define AVX_STATE "AVX"
 #else
-#  define AVX2_STATE "OFF"
+#  define AVX_STATE "OFF"
 #endif

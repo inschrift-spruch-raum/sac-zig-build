@@ -1,5 +1,4 @@
-#ifndef LMS_H
-#define LMS_H
+#pragma once // LMS_H
 
 #include <cmath>
 #include "../global.h"
@@ -71,7 +70,7 @@ class NLMS_Stream : public LS_Stream
       }
     }
 
-  #if defined(USE_AVX256)
+  #ifdef __AVX2__
     double calc_spow(const double *x,const double *powtab,std::size_t n)
     {
       double spow=0.0;
@@ -284,5 +283,3 @@ class SSLMS : public LMS {
         }
       }
 };
-
-#endif // LMS_H

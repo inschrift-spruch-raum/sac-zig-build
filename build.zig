@@ -42,6 +42,7 @@ fn collectCppFiles(b: *std.Build, exe: *std.Build.Step.Compile) !void {
         .flags = &[_][]const u8{
             "-std=c++23",
             "-fexperimental-library",
+            "-mavx2",
         },
     });
 }

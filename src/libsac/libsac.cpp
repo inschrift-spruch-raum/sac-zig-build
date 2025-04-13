@@ -1,4 +1,5 @@
 #include <algorithm>
+#include <cmath>
 #include <numeric>
 #include <thread>
 #include <future>
@@ -34,7 +35,7 @@ FrameCoder::FrameCoder(int numchannels,int framesize,const coder_ctx &opt)
   numsamples_=0;
 }
 
-//#define BIAS_SCALE1
+constexpr bool BIAS_SCALE1 = false;
 
 void FrameCoder::SetParam(Predictor::tparam &param,const SacProfile &profile,bool optimize)
 {
@@ -80,9 +81,9 @@ void FrameCoder::SetParam(Predictor::tparam &param,const SacProfile &profile,boo
 
   param.bias_scale0=param.bias_scale1=std::round(profile.Get(45));
   //param.mix_wmax=profile.Get(41);
-  #ifdef BIAS_SCALE1
+  if constexpr (BIAS_SCALE1) {
       param.bias_scale1=std::round(profile.Get(41));
-  #endif
+  }
 
   //param.nM0 = std::min(std::max(0,param.nB-param.nS1),param.nM0);
 
@@ -228,7 +229,7 @@ int FrameCoder::EncodeMonoFrame_Mapped(int ch,int numsamples,BufIO &buf)
 double FrameCoder::CalcRemapError(int ch, int numsamples)
 {
     std::vector<int32_t>emap(numsamples);
-    int32_t emax_map=0;
+    int32_t emax_map = 1;
     for (int i=0;i<numsamples;i++) {
       int32_t map_e=framestats[ch].mymap.Map(pred[ch][i],error[ch][i]);
       int32_t map_ue=MathUtils::S2U(map_e);
@@ -236,7 +237,7 @@ double FrameCoder::CalcRemapError(int ch, int numsamples)
       s2u_error_map[ch][i]=map_ue;
       if (map_ue>emax_map) emax_map=map_ue;
     }
-    framestats[ch].maxbpn_map=MathUtils::iLog2(emax_map);
+    framestats[ch].maxbpn_map=ilogb(emax_map);
 
     CostL1 cost;
 
@@ -421,13 +422,13 @@ void FrameCoder::CnvError_S2U(tch_samples &error,int numsamples)
 {
   for (int ch=0;ch<numchannels_;ch++)
   {
-    int32_t emax=0;
+    int32_t emax = 1;
     for (int i=0;i<numsamples;i++) {
       const int32_t e_s2u=MathUtils::S2U(error[ch][i]);
       if (e_s2u>emax) emax=e_s2u;
       s2u_error[ch][i]=e_s2u;
     }
-    framestats[ch].maxbpn=MathUtils::iLog2(emax);
+    framestats[ch].maxbpn=ilogb(emax);
   }
 }
 
@@ -438,7 +439,7 @@ void FrameCoder::Predict()
     AnalyseMonoChannel(ch,numsamples_);
     if (opt.sparse_pcm) {
       framestats[ch].mymap.Reset();
-      framestats[ch].mymap.Analyse(&(samples[ch]),numsamples_);
+      framestats[ch].mymap.Analyse(samples[ch], numsamples_);
     }
     if (opt.zero_mean==0) {
       framestats[ch].mean = 0;
