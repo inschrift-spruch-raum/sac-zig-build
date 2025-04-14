@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstdint>
+#include <stddef.h>
 
 /*
  * Bit-manipulation functions defined by the MD5 algorithm
