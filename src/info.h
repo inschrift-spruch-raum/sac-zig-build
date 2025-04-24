@@ -2,7 +2,7 @@
 
 #include <string_view>
 
-constexpr std::string_view SAC_VERSION = "0.7.18";
+constexpr std::string_view SAC_VERSION = "0.7.19";
 
 #define TOSTRING_HELPER(x) #x
 #define TOSTRING(x) TOSTRING_HELPER(x)

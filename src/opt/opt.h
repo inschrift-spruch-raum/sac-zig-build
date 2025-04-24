@@ -1,8 +1,9 @@
 #pragma once
 
+#include <functional>
+#include <future>
 #include "../global.h"
 #include "../common/rand.h"
-#include <functional>
 
 // general minimization for multivariate problems using box-constraints
 class Opt {
