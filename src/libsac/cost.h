@@ -155,22 +155,24 @@ class CostBitplane : public CostFunction {
        if (val>vmax) vmax=val;
        ubuf[i]=val;
     }
-    #if 1
+
+    double c0;
+    if constexpr (1) {
     BufIO iobuf;
     RangeCoderSH rc(iobuf);
     rc.Init();
-    BitplaneCoder bc_rc(ilogb(vmax),numsamples);
-    bc_rc.Encode(rc.encode_p1,&ubuf[0]);
+    BitplaneCoder bc_rc(ilogb(vmax), numsamples);
+    bc_rc.Encode(rc.encode_p1, &ubuf[0]);
     rc.Stop();
-    double c0=iobuf.GetBufPos();
-    #else
+    c0 = iobuf.GetBufPos();
+    } else {
 
-    StaticBitModel bm;
-    BitplaneCoder bc_bit(ilogb(vmax),numsamples);
-    bc_bit.Encode(bm.EncodeP1_Func(),&ubuf[0]);
+    //StaticBitModel bm;
+    //BitplaneCoder bc_bit(ilogb(vmax), numsamples);
+    //bc_bit.Encode(bm.EncodeP1_Func(), &ubuf[0]);
 
-    double c0=bm.nbits/8.0;
-    #endif
+    //c0 = bm.nbits / 8.0;
+    }
     return c0;
   }
 };

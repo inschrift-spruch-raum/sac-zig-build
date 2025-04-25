@@ -29,15 +29,15 @@ std::size_t Opt::eval_points_mt(opt_func func,std::span<ppoint> ps)
       std::cerr << " warning: nan in eval_points_mt\n";
   }
 
-  #if 0 // check for thread safety
+  if constexpr (0) {// check for thread safety
     std::vector<double> rt(ps.size());
-    for (std::size_t i=0;i<ps.size();i++)
+    for (std::size_t i = 0; i < ps.size(); i++)
       rt[i] = func(ps[i].second);
 
-    for (std::size_t i=0;i<ps.size();i++)
+    for (std::size_t i = 0; i < ps.size(); i++)
       if (ps[i].first != rt[i])
         std::cerr << "  warning: mt res (" << i << "): " << ps[i].first << ' ' << rt[i] << '\n';
-  #endif
+  }
 
   return threads.size();
 }

@@ -58,12 +58,13 @@ class LinearCounterLimit: public Prob16Counter
     void update(int bit,int limit)
     {
       if (counter<limit) counter++;
-      #if 0
-        int dp=((bit<<PBITS)-p1)/int(counter+3);
-      #else
-        int dp=bit?((PSCALE-p1)*div_tbl[counter])>>PBITS:-((p1*div_tbl[counter])>>PBITS);
+      int dp;
+      if constexpr (0) {
+        dp = ((bit << PBITS) - p1) / int(counter + 3);
+      } else {
+        dp = bit ? ((PSCALE - p1) * div_tbl[counter]) >> PBITS : -((p1 * div_tbl[counter]) >> PBITS);
         //int dp=(((bit<<PBITS)-p1)*div_tbl[counter]+PSCALEh)>>PBITS;
-      #endif
+      }
       p1=std::clamp(p1+dp,1,PSCALEm);
     };
 };

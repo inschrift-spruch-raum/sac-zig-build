@@ -79,15 +79,15 @@ double RLS::Predict(const std::vector<double> &pred)
 
 void RLS::UpdateGain()
 {
- #if 0
-  vector<double> vt1=MatrixMulVec(P,hist); // P(n-1)*x(n)
-  vector<double> vt2=VecMulMatrix(hist,P); // x^T(n)*P(n-1)
-  double t=VecMulVecInner(vt2,hist); // x^T(n)*P(n-1)*x(n)
-  k=ScalarMulVec(1./(alpha+t),vt1);
- #else
-  std::vector<double> vt1=MatrixMulVec(P,hist);
-  k=ScalarMulVec(1./(alpha+VecMulVecInner(hist,vt1)),vt1);
- #endif
+ if constexpr (0) {
+  std::vector<double> vt1 = MatrixMulVec(P, hist); // P(n-1)*x(n)
+  std::vector<double> vt2 = VecMulMatrix(hist, P); // x^T(n)*P(n-1)
+  double t = VecMulVecInner(vt2, hist); // x^T(n)*P(n-1)*x(n)
+  k = ScalarMulVec(1. / (alpha + t), vt1);
+ } else {
+  std::vector<double> vt1 = MatrixMulVec(P, hist);
+  k = ScalarMulVec(1. / (alpha+VecMulVecInner(hist, vt1)), vt1);
+ }
 }
 
 //update inverse of covariance matrix P(n)=1/lambda*P(n-1)-1/lambda * k(n)*x^T(n)*P(n-1)

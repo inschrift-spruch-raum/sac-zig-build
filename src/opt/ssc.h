@@ -1,5 +1,4 @@
-#ifndef SSC_H
-#define SSC_H
+#pragma once // header guard
 
 class SSC0
 {
@@ -55,17 +54,13 @@ class SSC1
     double p_target,p_a,r_sigma;
 };
 
-#if 0
-  /*if (p_succ > p_target)
+/*
+  if (p_succ > p_target)
     sigma = std::min(sigma*1.01,0.5);
   else if (p_succ < p_target) {
     sigma = std::max(sigma/1.01,0.05);
-  }*/
+  }
   double pd=0.01;
   sigma = sigma * std::exp(pd * (p_succ-p_target) / (1.0-p_target));
   sigma = std::max(std::min(sigma,0.5),0.05);
-#endif
-
-
-#endif // header guard
-
+*/
