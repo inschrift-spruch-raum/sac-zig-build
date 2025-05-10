@@ -2,8 +2,6 @@
 
 #include "opt.h"
 
-constexpr bool DE_GENF_JADE = true;
-
 // Differential Evolution
 class OptDE : public Opt {
   public:
@@ -17,13 +15,13 @@ class OptDE : public Opt {
     enum InitMethod {INIT_UNIV,INIT_NORM};
     struct DECfg
     {
-      int NP=40;
+      int NP=30;
       double CR=0.5;
       double F=0.5;
       double c=0.1;
-      MutMethod mut_method=CUR1BEST;
+      MutMethod mut_method=CURPBEST;
       InitMethod init_method=INIT_NORM;
-      double pbest=0.15;
+      double pbest=0.1;
       int npbest=std::clamp(static_cast<int>(std::round(pbest*NP))-1,0,NP-1);
       double sigma_init=0.15;
       std::size_t num_threads=1;
@@ -46,15 +44,7 @@ class OptDE : public Opt {
     }
     double gen_F(double mF)
     {
-      double t;
-      if constexpr (DE_GENF_JADE) {
-        t = rand.event(1./3.)?
-          rand.r_int(0,1.2):rand.r_norm(mF,0.1);
-      } else {
-        t = rand.r_norm(mF,0.1);
-      }
-
-      return std::clamp(t,0.01,1.2);
+      return std::clamp(rand.r_cauchy(mF,0.1),0.01,1.0);
     }
 
     vec1D mut_1bin(const vec1D &xb,const vec1D &x1,const vec1D &x2,double F);

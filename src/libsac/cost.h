@@ -65,7 +65,7 @@ class CostGolomb : public CostFunction {
     }
 };
 
-constexpr bool TOTAL_SELF_INFORMATION = true;
+constexpr bool TOTAL_SELF_INFORMATION = false;
 // entropy using order-0 markov model
 class CostEntropy : public CostFunction {
   public:
