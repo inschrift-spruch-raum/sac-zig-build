@@ -2,6 +2,7 @@
 #include "info.h"
 
 #include <iostream>
+#include <span>
 
 void SACInfo() {
   const int kValueWidth = 35; // 右对齐字段宽度（根据需求调整）
@@ -23,7 +24,7 @@ void SACInfo() {
 int main(int argc, char* argv[]) {
   SACInfo();
   CmdLine cmdline;
-  int error = cmdline.Parse(argc, argv);
+  int error = cmdline.Parse(std::span<char*>(argv, argc));
   if(error == 0) error = cmdline.Process();
   return error;
 }

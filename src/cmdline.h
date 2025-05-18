@@ -1,6 +1,8 @@
 #pragma once // CMDLINE_H
 
+#include <span>
 #include <string>
+#include <string_view>
 #include "libsac/libsac.h"
 
 const char SACHelp[] =
@@ -30,7 +32,7 @@ class CmdLine {
   enum CMODE {ENCODE,DECODE,LIST,LISTFULL};
   public:
     CmdLine();
-    int Parse(int argc,char *argv[]);
+    int Parse(std::span<char*> args);
     int Process();
   private:
     double stod_safe(const std::string& str);
@@ -38,7 +40,6 @@ class CmdLine {
     std::string SearchStr(const FrameCoder::SearchMethod search_func);
     void PrintMode();
     void PrintWav(const AudioFile &myWav);
-    void Split(const std::string &str,std::string &key,std::string &val,const char splitval='=');
     std::string sinputfile,soutputfile;
     CMODE mode;
     FrameCoder::coder_ctx opt;

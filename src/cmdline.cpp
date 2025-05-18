@@ -3,6 +3,10 @@
 #include "common/timer.h"
 #include "file/sac.h"
 #include <cstring>
+#include <span>
+#include <string>
+#include <string_view>
+#include <vector>
 
 CmdLine::CmdLine()
 :mode(ENCODE)
@@ -69,18 +73,6 @@ void CmdLine::PrintMode()
   std::cout << std::endl;
 }
 
-void CmdLine::Split(const std::string &str,std::string &key,std::string &val,const char splitval)
-{
-  key=val="";
-  std::size_t found=str.find(splitval);
-  if (found!=std::string::npos) {
-    key=str.substr(0,found);
-    val=str.substr(found+1);
-  } else {
-    key=str;
-  }
-}
-
 double CmdLine::stod_safe(const std::string& str)
 {
     double d;
@@ -96,24 +88,22 @@ double CmdLine::stod_safe(const std::string& str)
     return d;
 }
 
-int CmdLine::Parse(int argc,char *argv[])
+int CmdLine::Parse(std::span<char*> args)
 {
-  if (argc < 2) {
+  if (args.size() < 2) {
     std::cout << SACHelp;
     return 1;
   }
 
-  bool first=true;
-  std::string param,uparam;
-  int k=1;
-  while (k<argc) {
-    param=argv[k];
-    uparam=StrUtils::str_up(param);
-    std::string key,val;
-    Split(uparam,key,val);
+  bool first = true;
+  for (std::string_view param : args) {
+    std::string uparam = StrUtils::str_up(param);
+    std::vector<std::string> kv;
+    StrUtils::SplitToken(uparam, kv, "=");
+    kv.resize(2);
+    std::string& key = kv.at(0), val = kv.at(1);
 
-    if (param.length()>1 && (param[0]=='-' && param[1]=='-'))
-    {
+    if (param.starts_with("--")) {
        if (key=="--ENCODE") mode=ENCODE;
        else if (key=="--DECODE") mode=DECODE;
        else if (key=="--LIST") mode=LIST;
@@ -161,7 +151,7 @@ int CmdLine::Parse(int argc,char *argv[])
             opt.ocfg.fraction=std::clamp(stod_safe(vs[0]),0.,1.);
             opt.ocfg.maxnfunc=std::clamp(std::stoi(vs[1]),0,50000);
             if (vs.size()>=3) {
-              std::string cf=StrUtils::str_up(vs[2]);
+              std::string cf = StrUtils::str_up(vs[2]);
               if (cf=="L1") opt.ocfg.optimize_cost = FrameCoder::SearchCost::L1;
               else if (cf=="RMS") opt.ocfg.optimize_cost = FrameCoder::SearchCost::RMS;
               else if (cf=="GLB") opt.ocfg.optimize_cost = FrameCoder::SearchCost::Golomb;
@@ -194,10 +184,10 @@ int CmdLine::Parse(int argc,char *argv[])
          std::vector<std::string>vs;
          StrUtils::SplitToken(val,vs,",");
          if (vs.size()>=1) {
-            std::string val=StrUtils::str_up(vs[0]);
-            if (val=="DDS") opt.ocfg.optimize_search=FrameCoder::SearchMethod::DDS;
-            else if (val=="DE") opt.ocfg.optimize_search=FrameCoder::SearchMethod::DE;
-            else std::cerr << "  warning: invalid val='"<<val<<"'\n";
+            std::string algorithm = StrUtils::str_up(vs[0]);
+            if (algorithm == "DDS") opt.ocfg.optimize_search = FrameCoder::SearchMethod::DDS;
+            else if (algorithm == "DE") opt.ocfg.optimize_search = FrameCoder::SearchMethod::DE;
+            else std::cerr << "  warning: invalid opt-cfg='" << algorithm << "'\n";
          }
          if (vs.size()>=2) opt.ocfg.num_threads = std::clamp(std::stoi(vs[1]),0,256);
          if (vs.size()>=3) opt.ocfg.sigma=std::clamp(stod_safe(vs[2]),0.,1.);
@@ -213,7 +203,6 @@ int CmdLine::Parse(int argc,char *argv[])
        if (first) {sinputfile=param;first=false;}
        else soutputfile=param;
     }
-    k++;
   }
   // configure opt method
   if (opt.ocfg.optimize_search==FrameCoder::SearchMethod::DDS)

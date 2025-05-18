@@ -7,6 +7,7 @@
 #include <string>
 #include <cmath>
 #include <immintrin.h>
+#include <string_view>
 
 // running exponential smoothing
 // sum=alpha*sum+(1.0-alpha)*val, where 1/(1-alpha) is the mean number of samples considered
@@ -74,19 +75,19 @@ namespace StrUtils {
       {
         std::transform(str.begin(), str.end(),str.begin(), ::toupper);
       }
-      inline std::string str_up(const std::string &str)
+      inline std::string str_up(const std::string_view str)
       {
-        std::string ts=str;
-        for (auto &c:ts) c=toupper(c);
+        std::string ts;
+        for (auto c:str) ts += toupper(c);
         return ts;
       }
-      inline void SplitToken(const std::string& str,std::vector<std::string>& tokens,const std::string& delimiters)
+      inline void SplitToken(const std::string_view str,std::vector<std::string>& tokens,const std::string_view delimiters)
       {
         auto lastPos = str.find_first_not_of(delimiters, 0); // Skip delimiters at beginning.
         auto pos     = str.find_first_of(delimiters, lastPos); // Find first "non-delimiter".
 
         while (std::string::npos != pos || std::string::npos != lastPos)  {
-          tokens.push_back(str.substr(lastPos, pos - lastPos)); // Found a token, add it to the vector.
+          tokens.push_back(std::string(str.substr(lastPos, pos - lastPos))); // Found a token, add it to the vector.
           lastPos = str.find_first_not_of(delimiters, pos); // Skip delimiters.  Note the "not_of"
           pos = str.find_first_of(delimiters, lastPos); // Find next "non-delimiter"
         }
