@@ -15,6 +15,7 @@
     .paths = .{
         "build.zig",
         "build.zig.zon",
+        "build",
         "src",
         ".gitignore",
         ".clang-format",
