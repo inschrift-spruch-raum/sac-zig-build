@@ -15,7 +15,6 @@ class RangeCoderBase {
     int decode;
 };
 
-//#define SCALE_RANGE (((PSCALE-p1)*uint64_t(range)) >> PBITS) // 64 bit shift
 inline uint32_t SCALE_RANGE(uint32_t &range, uint32_t &p1) {return ((uint64_t(range)*((PSCALE-p1)<<(32-PBITS)))>>32);}
 
 inline void RANGE_ENC_NORMALIZE(BufIO &buf, uint32_t &low, uint32_t &range, uint32_t TOP, uint32_t BOT) { 

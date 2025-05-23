@@ -7,8 +7,19 @@
 constexpr bool BIAS_ROUND_PRED = true;
 constexpr int BIAS_MIX_N = 3;
 constexpr int BIAS_MIX_NUMCTX = 4;
-constexpr int BIAS_MIX = 0;
+constexpr int BIAS_MIX_TYPE = 0;  // 0: SSLMS, 1: LAD_ADA, 2: LMS_ADA
 constexpr int BIAS_NAVG = 5;
+
+// Helper function to create the appropriate mixer type
+static auto createMixer(double lms_mu) {
+  if constexpr (BIAS_MIX_TYPE == 0) {
+    return SSLMS(BIAS_MIX_N, lms_mu);
+  } else if constexpr (BIAS_MIX_TYPE == 1) {
+    return LAD_ADA(BIAS_MIX_N, lms_mu, 0.96);
+  } else {
+    return LMS_ADA(BIAS_MIX_N, lms_mu, 0.965, 0.005);
+  }
+}
 
 class BiasEstimator {
   class CntAvg {
@@ -42,24 +53,18 @@ class BiasEstimator {
 
   public:
     BiasEstimator(double lms_mu=0.003,int nb_scale=5,double nd_sigma=1.5,double nd_lambda=0.998)
-    :
-    #if BIAS_MIX == 0
-      mix_ada(BIAS_MIX_NUMCTX,SSLMS(BIAS_MIX_N,lms_mu)),
-    #elif BIAS_MIX == 1
-      mix_ada(BIAS_MIX_NUMCTX,LAD_ADA(BIAS_MIX_N,lms_mu,0.96)),
-    #elif BIAS_MIX == 2
-      mix_ada(BIAS_MIX_NUMCTX,LMS_ADA(BIAS_MIX_N,lms_mu,0.965,0.005)),
-    #endif
-    hist_input(8),hist_delta(8),
-    cnt0(1<<6,CntAvg(nb_scale)),
-    cnt1(1<<6,CntAvg(nb_scale)),
-    cnt2(1<<6,CntAvg(nb_scale)),
-    sigma(nd_sigma),
-    run_mv(nd_lambda)
+    : mix_ada(BIAS_MIX_NUMCTX, createMixer(lms_mu)),
+      hist_input(8),hist_delta(8),
+      cnt0(1<<6,CntAvg(nb_scale)),
+      cnt1(1<<6,CntAvg(nb_scale)),
+      cnt2(1<<6,CntAvg(nb_scale)),
+      sigma(nd_sigma),
+      run_mv(nd_lambda)
     {
       ctx0=ctx1=ctx2=mix_ctx=0;
       px=0.0;
     }
+
     void CalcContext(double p)
     {
       int b0=hist_input[0]>p?0:1;
@@ -148,13 +153,8 @@ class BiasEstimator {
       mix_ada[mix_ctx].Update(delta);
     }
   private:
-    #if BIAS_MIX == 0
-      std::vector<SSLMS> mix_ada;
-    #elif BIAS_MIX == 1
-      std::vector<LAD_ADA> mix_ada;
-    #elif BIAS_MIX == 2
-      std::vector<LMS_ADA> mix_ada;
-    #endif
+    using MixerType = decltype(createMixer(0.0)); // Deduce the mixer type
+    std::vector<MixerType> mix_ada;
     vec1D hist_input,hist_delta;
     int ctx0,ctx1,ctx2,mix_ctx;
     double px;

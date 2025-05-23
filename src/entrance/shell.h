@@ -1,11 +1,11 @@
-#pragma once // CMDLINE_H
+#pragma once // Shell_H
 
 #include <span>
 #include <string>
 #include <string_view>
-#include "libsac/libsac.h"
+#include "../libsac/libsac.h"
 
-const char SACHelp[] =
+constexpr std::string_view SACHelp =
 "usage: sac [--options] input output\n\n"
 "  --encode            encode input.wav to output.sac (def)\n"
 "    --normal|high|veryhigh|extrahigh compression (def=normal)\n"
@@ -28,12 +28,13 @@ const char SACHelp[] =
 "   --framelen=n       def=20 seconds\n"
 "   --sparse-pcm       enable pcm modelling\n";
 
-class CmdLine {
+class Shell {
   enum CMODE {ENCODE,DECODE,LIST,LISTFULL};
   public:
-    CmdLine();
+    Shell();
     int Parse(std::span<char*> args);
     int Process();
+    void SACInfo();
   private:
     double stod_safe(const std::string& str);
     std::string CostStr(const FrameCoder::SearchCost cost_func);

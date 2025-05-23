@@ -2,7 +2,8 @@ const std = @import("std");
 
 const cppfiles = [_][]const u8{
     "src/main.cpp",
-    "src/cmdline.cpp",
+
+    "src/entrance/shell.cpp",
 
     "src/common/md5.cpp",
     "src/common/utils.cpp",

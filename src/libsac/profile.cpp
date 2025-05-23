@@ -1,5 +1,7 @@
 #include "profile.h"
 
+constexpr bool LMS_ADA_PROFILE = false;
+
 int SacProfile::LoadBaseProfile()
 {
   const int mo_lpc=32; // maximum ols order
@@ -77,7 +79,7 @@ int SacProfile::LoadBaseProfile()
   //profile.Set(51,0.0,1.0,0.8); //pow_decay
   //profile.Set(52,0.0,1.0,0.8); //pow_decay
 
-  if constexpr (LMS_ADA) {
+  if constexpr (LMS_ADA_PROFILE) {
     profile.Set(47,0.95,0.99,0.97); // beta
     profile.Set(49,0.95,0.99,0.97); // beta
 

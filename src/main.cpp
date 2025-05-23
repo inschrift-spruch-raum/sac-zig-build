@@ -1,30 +1,11 @@
-#include "cmdline.h"
-#include "info.h"
+#include "/entrance/shell.h"
 
-#include <iostream>
 #include <span>
 
-void SACInfo() {
-  const int kValueWidth = 35; // 右对齐字段宽度（根据需求调整）
-
-  std::cout << "+----------------------- Sac -----------------------+\n"
-            << "| State-of-the-art lossless audio compression model |\n"
-            << "+---------------------------------------------------+\n"
-            << "| Copyright (c) 2024 Sebastian Lehmann  MIT License |\n"
-            << "+---------------------------------------------------+\n"
-            << "| Compiler      " << std::setw(kValueWidth) << std::right
-            << COMPILER << " |\n"
-            << "| Architecture  " << std::setw(kValueWidth) << std::right
-            << ARCHITECTURE << " |\n"
-            << "| AVX State     " << std::setw(kValueWidth) << std::right
-            << AVX_STATE << " |\n"
-            << "+---------------------------------------------------+\n";
-}
-
 int main(int argc, char* argv[]) {
-  SACInfo();
-  CmdLine cmdline;
-  int error = cmdline.Parse(std::span<char*>(argv, argc));
-  if(error == 0) error = cmdline.Process();
+  Shell Shell;
+  Shell.SACInfo();
+  int error = Shell.Parse(std::span<char*>(argv, argc));
+  if(error == 0) error = Shell.Process();
   return error;
 }

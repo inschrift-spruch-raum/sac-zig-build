@@ -70,8 +70,31 @@ class NLMS_Stream : public LS_Stream
       }
     }
 
-  #ifdef __AVX2__
-    double calc_spow(const double *x,const double *powtab,std::size_t n)
+    double calc_spow(const double *x,const double *powtab,std::size_t n) {
+      if constexpr(AVX_STATE == "AVX2") {
+        return calc_spow__AVX2__(x, powtab, n);
+      }
+
+      return calc_spow__ordinary(x, powtab, n);
+    }
+
+
+    void Update(double val) override
+    {
+      const double spow=calc_spow(x.data(),powtab.data(),n);
+      const double wgrad=mu*(val-pred)*sum_powtab/(eps_pow+spow);
+      for (int i=0;i<n;i++) {
+        w[i]+=mutab[i]*(wgrad*x[i]);
+      }
+      x.push(val);
+    };
+    ~NLMS_Stream(){};
+  protected:
+    std::vector<double,align_alloc<double>> mutab,powtab;
+    double sum_powtab;
+    double mu;
+
+    double calc_spow__AVX2__(const double *x,const double *powtab,std::size_t n)
     {
       double spow=0.0;
       std::size_t i=0;
@@ -93,8 +116,8 @@ class NLMS_Stream : public LS_Stream
         spow += powtab[i] * (x[i] * x[i]);
       return spow;
     }
-  #else
-    double calc_spow(const double *x,const double *powtab,std::size_t n)
+
+    double calc_spow__ordinary(const double *x,const double *powtab,std::size_t n)
     {
       double spow=0.0;
       for (std::size_t i=0;i<n;i++) {
@@ -102,22 +125,6 @@ class NLMS_Stream : public LS_Stream
       }
       return spow;
     }
-  #endif
-
-    void Update(double val) override
-    {
-      const double spow=calc_spow(x.data(),powtab.data(),n);
-      const double wgrad=mu*(val-pred)*sum_powtab/(eps_pow+spow);
-      for (int i=0;i<n;i++) {
-        w[i]+=mutab[i]*(wgrad*x[i]);
-      }
-      x.push(val);
-    };
-    ~NLMS_Stream(){};
-  protected:
-    std::vector<double,align_alloc<double>> mutab,powtab;
-    double sum_powtab;
-    double mu;
 };
 
 class LADADA_Stream : public LS_Stream

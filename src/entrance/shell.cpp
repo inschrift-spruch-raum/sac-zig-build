@@ -1,19 +1,17 @@
-#include "cmdline.h"
-#include "common/utils.h"
-#include "common/timer.h"
-#include "file/sac.h"
+#include "shell.h"
+#include "../global.h"
+#include "../common/utils.h"
+#include "../common/timer.h"
+#include "../file/sac.h"
 #include <cstring>
 #include <span>
 #include <string>
 #include <string_view>
 #include <vector>
 
-CmdLine::CmdLine()
-:mode(ENCODE)
-{
-}
+Shell::Shell():mode(ENCODE){}
 
-void CmdLine::PrintWav(const AudioFile &myWav)
+void Shell::PrintWav(const AudioFile &myWav)
 {
   std::cout << "  WAVE  Codec: PCM (" << myWav.getKBPS() << " kbps)\n";
   std::cout << "  " << myWav.getSampleRate() << "Hz " << myWav.getBitsPerSample() << " Bit  ";
@@ -24,7 +22,7 @@ void CmdLine::PrintWav(const AudioFile &myWav)
   std::cout << "  " << myWav.getNumSamples() << " Samples [" << miscUtils::getTimeStrFromSamples(myWav.getNumSamples(),myWav.getSampleRate()) << "]\n";
 }
 
-std::string CmdLine::CostStr(const FrameCoder::SearchCost cost_func)
+std::string Shell::CostStr(const FrameCoder::SearchCost cost_func)
 {
   using enum FrameCoder::SearchCost;
   std::string rstr;
@@ -39,7 +37,7 @@ std::string CmdLine::CostStr(const FrameCoder::SearchCost cost_func)
   return rstr;
 }
 
-std::string CmdLine::SearchStr(const FrameCoder::SearchMethod search_func)
+std::string Shell::SearchStr(const FrameCoder::SearchMethod search_func)
 {
   using enum FrameCoder::SearchMethod;
   std::string rstr;
@@ -51,7 +49,7 @@ std::string CmdLine::SearchStr(const FrameCoder::SearchMethod search_func)
   return rstr;
 }
 
-void CmdLine::PrintMode()
+void Shell::PrintMode()
 {
   const FrameCoder::toptim_cfg &ocfg = opt.ocfg;
   std::cout << "  Profile: ";
@@ -73,7 +71,7 @@ void CmdLine::PrintMode()
   std::cout << std::endl;
 }
 
-double CmdLine::stod_safe(const std::string& str)
+double Shell::stod_safe(const std::string& str)
 {
     double d;
     try {
@@ -88,7 +86,7 @@ double CmdLine::stod_safe(const std::string& str)
     return d;
 }
 
-int CmdLine::Parse(std::span<char*> args)
+int Shell::Parse(std::span<char*> args)
 {
   if (args.size() < 2) {
     std::cout << SACHelp;
@@ -220,7 +218,7 @@ int CmdLine::Parse(std::span<char*> args)
   return 0;
 }
 
-int CmdLine::Process()
+int Shell::Process()
 {
   Timer myTimer;
   myTimer.start();
@@ -336,4 +334,23 @@ int CmdLine::Process()
   myTimer.stop();
   std::cout << "\n  Time:    [" << miscUtils::getTimeStrFromSeconds(round(myTimer.elapsedS())) << "]" << std::endl;
   return 0;
+}
+
+void Shell::SACInfo() {
+  const int kValueWidth = 35;
+
+  std::cout << "+----------------------- Sac -----------------------+\n"
+            << "| State-of-the-art lossless audio compression model |\n"
+            << "+---------------------------------------------------+\n"
+            << "| Copyright (c) 2024 Sebastian Lehmann  MIT License |\n"
+            << "+---------------------------------------------------+\n"
+            << "| Version       " << std::setw(kValueWidth) << std::right
+            << SAC_VERSION << " |\n"
+            << "| Compiler      " << std::setw(kValueWidth) << std::right
+            << COMPILER << " |\n"
+            << "| Architecture  " << std::setw(kValueWidth) << std::right
+            << ARCHITECTURE << " |\n"
+            << "| AVX State     " << std::setw(kValueWidth) << std::right
+            << AVX_STATE << " |\n"
+            << "+---------------------------------------------------+\n";
 }
