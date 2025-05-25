@@ -5,6 +5,8 @@
 #include "../common/histbuf.h"
 #include "../common/utils.h"
 
+constexpr bool ADA_BIAS_CORR = false;
+
 class LS_Stream {
   public:
     LS_Stream(int n)
@@ -221,32 +223,32 @@ class LMS_ADA : public LMS
     double beta,nu;
 };
 
-//#define ADA_BIAS_CORR
 class LAD_ADA : public LMS
 {
   public:
     LAD_ADA(int n,double mu,double beta=0.95)
     :LMS(n,mu),eg(n),beta(beta)
     {
-      #ifdef ADA_BIAS_CORR
+      if constexpr (ADA_BIAS_CORR) {
         power_beta=1.0;
-      #endif
+      }
     }
     void Update(double val) override
     {
       const double serr=MathUtils::sgn(val-pred); // prediction error
-      #ifdef ADA_BIAS_CORR
+      if constexpr (ADA_BIAS_CORR) {
         power_beta*=beta;
-      #endif
+      }
       for (int i=0;i<n;i++) {
         double const grad=serr*x[i];
 
         eg[i]=beta*eg[i]+(1.0-beta)*grad*grad; //accumulate gradients
-        #ifdef ADA_BIAS_CORR
-          const double eg_hat=eg[i]/(1.0-power_beta);
-        #else
-          const double eg_hat=eg[i];
-        #endif
+        double eg_hat;
+        if constexpr (ADA_BIAS_CORR) {
+          eg_hat = eg[i] / (1.0 - power_beta);
+        } else {
+          eg_hat = eg[i];
+        }
         double g=grad*1.0/(sqrt(eg_hat)+1E-5);// update weights
         w[i]+=mu*g;
       }
@@ -254,9 +256,9 @@ class LAD_ADA : public LMS
   protected:
     vec1D eg;
     double beta;
-    #ifdef ADA_BIAS_CORR
-      double power_beta;
-    #endif
+    //#ifdef ADA_BIAS_CORR
+    double power_beta;
+    //#endif
 };
 
 // Huber loss + ADA-Grad
