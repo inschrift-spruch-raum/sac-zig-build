@@ -44,11 +44,6 @@ public:
   void SACInfo();
 
 private:
-  double stod_safe(const std::string& str);
-  std::string CostStr(const FrameCoder::SearchCost cost_func);
-  std::string SearchStr(const FrameCoder::SearchMethod search_func);
-  void PrintMode();
-  void PrintWav(const AudioFile& myWav);
   void HandleOptimizeParam(std::string_view val);
   void HandleOptCfgParam(std::string_view val);
   std::unordered_map<

@@ -8,6 +8,7 @@
 #include <cmath>
 #include <immintrin.h>
 #include <string_view>
+#include <unordered_map>
 
 // running exponential smoothing
 // sum=alpha*sum+(1.0-alpha)*val, where 1/(1-alpha) is the mean number of samples considered
@@ -106,6 +107,28 @@ namespace StrUtils {
         std::vector <std::string> tokens;
         SplitToken(str,tokens,",");
         for (auto &token:tokens) x.push_back(std::stof(token));
+      }
+
+      inline double stod_safe(const std::string& str) {
+        double d;
+        try {
+          d = std::stod(str);
+        } catch(const std::invalid_argument&) {
+          std::cerr << "stod: argument is invalid\n";
+          throw;
+        } catch(const std::out_of_range&) {
+          std::cerr << "stod: argument is out of range for a double\n";
+          throw;
+        }
+        return d;
+      }
+
+      template<typename E>
+      inline std::string EnumToStr(E value, const std::unordered_map<E, std::string_view>& mapping) {
+        if(auto it = mapping.find(value); it != mapping.end()) {
+          return std::string(it->second);
+        }
+        return "";
       }
 };
 
