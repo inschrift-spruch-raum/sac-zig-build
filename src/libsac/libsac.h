@@ -13,7 +13,7 @@ class FrameCoder {
     enum SearchCost {L1,RMS,Entropy,Golomb,Bitplane};
     enum SearchMethod {DDS,DE};
 
-    typedef std::vector <std::vector<int32_t>> tch_samples;
+    using tch_samples = std::vector <std::vector<int32_t>>;
 
     struct toptim_cfg {
       OptDDS::DDSCfg dds_cfg;
