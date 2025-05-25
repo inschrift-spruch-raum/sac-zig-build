@@ -1,5 +1,20 @@
 #include "md5.h"
 
+constexpr uint32_t MD5_A = 0x67452301;
+constexpr uint32_t MD5_B = 0xefcdab89;
+constexpr uint32_t MD5_C = 0x98badcfe;
+constexpr uint32_t MD5_D = 0x10325476;
+
+
+/*
+ * Bit-manipulation functions defined by the MD5 algorithm
+ */
+uint32_t F(uint32_t &X, uint32_t &Y, uint32_t &Z) {return ((X & Y) | (~X & Z));}
+uint32_t G(uint32_t &X, uint32_t &Y, uint32_t &Z) {return ((X & Z) | (Y & ~Z));}
+uint32_t H(uint32_t &X, uint32_t &Y, uint32_t &Z) {return (X ^ Y ^ Z);}
+uint32_t I(uint32_t &X, uint32_t &Y, uint32_t &Z) {return (Y ^ (X | ~Z));}
+
+
 static uint32_t S[] = {7, 12, 17, 22, 7, 12, 17, 22, 7, 12, 17, 22, 7, 12, 17, 22,
                        5,  9, 14, 20, 5,  9, 14, 20, 5,  9, 14, 20, 5,  9, 14, 20,
                        4, 11, 16, 23, 4, 11, 16, 23, 4, 11, 16, 23, 4, 11, 16, 23,

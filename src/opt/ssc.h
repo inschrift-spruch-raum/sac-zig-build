@@ -1,5 +1,7 @@
 #pragma once // header guard
 
+// adaptive step-size control
+
 class SSC0
 {
   public:

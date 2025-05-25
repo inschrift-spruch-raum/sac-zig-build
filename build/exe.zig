@@ -21,6 +21,7 @@ const cppfiles = [_][]const u8{
 
     "src/model/range.cpp",
 
+    "src/opt/cma.cpp",
     "src/opt/dds.cpp",
     "src/opt/de.cpp",
     "src/opt/opt.cpp",

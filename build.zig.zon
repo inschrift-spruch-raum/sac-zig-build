@@ -1,7 +1,7 @@
 .{
     .name = .Sac,
 
-    .version = "0.7.20",
+    .version = "0.7.21",
 
     .fingerprint = 0x39e623ffae0f9871,
 
