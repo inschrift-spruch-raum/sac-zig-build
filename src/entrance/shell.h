@@ -39,7 +39,7 @@ class Shell {
 
 public:
   Shell();
-  int Parse(std::span<char*> args);
+  int Parse(std::span<const char*> args);
   int Process();
   void SACInfo();
 

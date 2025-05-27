@@ -136,7 +136,7 @@ Shell::CreateParamHandlers() {
 }
 
 
-int Shell::Parse(std::span<char*> args) {
+int Shell::Parse(std::span<const char*> args) {
   if(args.size() < 2) {
     std::cout << SACHelp;
     return 1;
