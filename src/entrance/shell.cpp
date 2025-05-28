@@ -4,6 +4,7 @@
 #include "../common/timer.h"
 #include "../common/utils.h"
 
+#include <ranges>
 #include <span>
 #include <string>
 #include <string_view>
@@ -146,7 +147,7 @@ int Shell::Parse(std::span<const char*> args) {
   static const auto param_handlers = CreateParamHandlers();
 
   bool first = true;
-  for(std::string_view param: args) {
+  for(std::string_view param: args | std::views::drop(1)) {
     std::string uparam = StrUtils::str_up(param);
     std::vector<std::string> kv;
     StrUtils::SplitToken(uparam, kv, "=");

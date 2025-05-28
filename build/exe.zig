@@ -29,7 +29,7 @@ const cppfiles = [_][]const u8{
     "src/pred/rls.cpp",
 };
 
-pub fn set(b: *std.Build, target: ?std.Build.ResolvedTarget, optimize: std.builtin.OptimizeMode, flags: []const []const u8) *std.Build.Step.Compile {
+pub fn set(b: *std.Build, target: std.Build.ResolvedTarget, optimize: std.builtin.OptimizeMode, flags: []const []const u8) *std.Build.Step.Compile {
     const exe = b.addExecutable(.{
         .name = "sac",
         .target = target,
@@ -41,7 +41,12 @@ pub fn set(b: *std.Build, target: ?std.Build.ResolvedTarget, optimize: std.built
         .flags = flags,
     });
 
-    exe.linkLibCpp();
+    if (target.result.abi != .msvc) {
+        exe.linkLibCpp();
+    } else {
+        exe.linkLibC();
+    }
+
     b.installArtifact(exe);
 
     return exe;

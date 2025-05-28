@@ -4,12 +4,20 @@
   "version": "2.0.0",
   "tasks": [
     {
-      "label": "compile",
+      "label": "Compile-MSVC",
+      "type": "shell",
+      "command": "zig",
+      "args": ["build", "-Dtarget=x86_64-windows-msvc", "-Doptimize=Debug"],
+      "group": "build",
+      "problemMatcher": "$zig"
+    },
+    {
+      "label": "Compile",
       "type": "shell",
       "command": "zig",
       "args": ["build", "-Doptimize=Debug"],
       "group": "build",
       "problemMatcher": "$zig"
-    }
+    },
   ]
 }

@@ -5,15 +5,15 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "type": "lldb",
+      "type": "cppvsdbg",
       "request": "launch",
-      "name": "Debug",
-      "preLaunchTask": "compile",
-      "program": "zig-out\\bin\\sac.exe",
+      "name": "Debug-MSVC",
+      "preLaunchTask": "Compile-MSVC",
+      "program": "zig-out/bin/sac.exe",
       "args": [
-        "--best",
-        ".\\debug\\test.wav",
-        ".\\debug\\test.sac",
+        "--encode",
+        "./debug/test.wav",
+        "./debug/test.sac",
         "--verbose"
       ],
       "cwd": "${workspaceFolder}",
