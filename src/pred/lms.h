@@ -4,6 +4,7 @@
 #include "../global.h"
 #include "../common/histbuf.h"
 #include "../common/utils.h"
+#include "../common/math.h"
 
 constexpr bool ADA_BIAS_CORR = false;
 
@@ -14,9 +15,8 @@ class LS_Stream {
     {
 
     }
-    double Predict()
-    {
-      pred=MathUtils::dot(x.data(),w.data(),n);
+    double Predict() {
+      pred = slmath::dot_scalar(span_cf64(x.data(), n),span_cf64(w.data(), n));
       return pred;
     }
     virtual void Update(double val)=0;
@@ -186,11 +186,9 @@ class LMS {
     :n(n),x(n),w(n),mu(mu),pred(0)
     {
     }
-    double Predict(const vec1D &inp)
-    {
-      x=inp;
-      pred=0.0;
-      for (int i=0;i<n;i++) pred+=w[i]*x[i];
+    double Predict(const vec1D &inp) {
+      x = inp;
+      pred = slmath::dot_scalar(span_cf64(w.data(), n), span_cf64(x.data(), n));
       return pred;
     }
     virtual void Update(double)=0;

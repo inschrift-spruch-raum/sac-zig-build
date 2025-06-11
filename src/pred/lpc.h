@@ -1,6 +1,7 @@
 #pragma once // LPC_H
 
 #include "../common/utils.h"
+#include "../common/math.h"
 
 constexpr bool INIT_COV = false;
 
@@ -19,9 +20,8 @@ class OLS {
         for (int i=0;i<n;i++) mcov[i][i]=1.0;
       }
     }
-    double Predict()
-    {
-      pred=MathUtils::dot(x.data(),w.data(),n);
+    double Predict() {
+      pred = slmath::dot_scalar(span_cf64(x.data(), n), span_cf64(w.data(), n));
       return pred;
     }
 

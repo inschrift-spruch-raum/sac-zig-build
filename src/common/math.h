@@ -3,21 +3,24 @@
 
 #include "../global.h"
 #include <cassert>
+#include <numeric>
 
 namespace slmath
 {
 
-  double dot_scalar(const vec1D &v1,const vec1D &v2)
-  {
-    assert(v1.size()==v2.size());
-    double sum=0.0;
-    for (std::size_t i=0;i<v1.size();++i)
-      sum+=v1[i]*v2[i];
-    return sum;
+  inline double dot_scalar(const span_cf64 &v1,const span_cf64 &v2) {
+    if (v1.size() != v2.size()) throw std::invalid_argument("invalid_argument");
+    return std::transform_reduce(
+        v1.begin(), v1.end(),
+        v2.begin(),
+        0.0,
+        std::plus<>(),
+        std::multiplies<>()
+    );
   }
 
   // vector = matrix * vector
-  vec1D mul(const vec2D &m,const vec1D &v)
+  inline vec1D mul(const vec2D &m,const vec1D &v)
   {
     vec1D v_out(m.size());
     for (std::size_t i=0;i<m.size();i++)
@@ -26,7 +29,7 @@ namespace slmath
   }
 
   // vector = scalar * vector
-  vec1D mul(const double s,const vec1D &v)
+  inline vec1D mul(const double s,const vec1D &v)
   {
     vec1D v_out(v.size());
     for (std::size_t i=0;i<v.size();i++)
@@ -35,7 +38,7 @@ namespace slmath
   }
 
   // matrix = matrix  * matrix
-  vec2D mul(const vec2D &m1, const vec2D &m2)
+  inline vec2D mul(const vec2D &m1, const vec2D &m2)
   {
     vec2D m_out(m1.size(), vec1D(m2[0].size()));
     for (int j=0;j<(int)m_out.size();j++)
@@ -50,7 +53,7 @@ namespace slmath
   }
 
   // outer product of u*v^T
-  vec2D outer(const vec1D &u,const vec1D &v)
+  inline vec2D outer(const vec1D &u,const vec1D &v)
   {
     int nrows=u.size();
     int ncols=v.size();
