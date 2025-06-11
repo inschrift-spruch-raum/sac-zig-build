@@ -45,15 +45,15 @@ namespace Standard {
               << "]\n";
   }
 
-  void PrintMode(FrameCoder::coder_ctx& opt) {
-    const FrameCoder::toptim_cfg& ocfg = opt.ocfg;
+  void PrintMode(FrameCoder::tsac_cfg& cfg) {
+    const FrameCoder::toptim_cfg& ocfg = cfg.ocfg;
     std::cout << "  Profile: "
-              << "mt" << opt.mt_mode << " " << opt.max_framelen << "s";
-    if(opt.adapt_block) std::cout << " ab";
-    if(opt.zero_mean) std::cout << " zero-mean";
-    if(opt.sparse_pcm) std::cout << " sparse-pcm";
+              << "mt" << cfg.mt_mode << " " << cfg.max_framelen << "s";
+    if(cfg.adapt_block) std::cout << " ab";
+    if(cfg.zero_mean) std::cout << " zero-mean";
+    if(cfg.sparse_pcm) std::cout << " sparse-pcm";
     std::cout << '\n';
-    if(opt.optimize) {
+    if(cfg.optimize) {
       std::cout << "  Optimize: " << SearchStr(ocfg.optimize_search) << " "
                 << std::format("{:.1f}%", ocfg.fraction * 100.0)
                 << ", n=" << ocfg.maxnfunc << "," << CostStr(ocfg.optimize_cost)
@@ -64,7 +64,7 @@ namespace Standard {
 
   int ProcessEncode(
     const std::string& input, const std::string& output,
-    FrameCoder::coder_ctx& config
+    FrameCoder::tsac_cfg& config
   ) {
     Wav myWav(config.verbose_level > 0);
     std::cout << "Open: '" << input << "': ";
@@ -123,7 +123,7 @@ namespace Standard {
 
   void ProcessDecode(
     const std::string& input, const std::string& output,
-    FrameCoder::coder_ctx& config
+    FrameCoder::tsac_cfg& config
   ) {
     Sac mySac;
     std::cout << "Open: '" << input << "': ";
@@ -182,7 +182,7 @@ namespace Standard {
   }
 
   void ProcessList(
-    const std::string& input, FrameCoder::coder_ctx& config, bool full
+    const std::string& input, FrameCoder::tsac_cfg& config, bool full
   ) {
     Sac mySac;
     std::cout << "Open: '" << input << "': ";

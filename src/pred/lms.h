@@ -6,8 +6,6 @@
 #include "../common/utils.h"
 #include "../common/math.h"
 
-constexpr bool ADA_BIAS_CORR = false;
-
 class LS_Stream {
   public:
     LS_Stream(int n)

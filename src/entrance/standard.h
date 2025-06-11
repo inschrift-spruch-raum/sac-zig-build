@@ -5,16 +5,16 @@ namespace Standard {
   std::string CostStr(const FrameCoder::SearchCost cost_func);
   std::string SearchStr(const FrameCoder::SearchMethod search_func);
   void PrintAudioInfo(const AudioFile& file);
-  void PrintMode(FrameCoder::coder_ctx& opt);
+  void PrintMode(FrameCoder::tsac_cfg& cfg);
   int ProcessEncode(
     const std::string& input, const std::string& output,
-    FrameCoder::coder_ctx& config
+    FrameCoder::tsac_cfg& config
   );
   void ProcessDecode(
     const std::string& input, const std::string& output,
-    FrameCoder::coder_ctx& config
+    FrameCoder::tsac_cfg& config
   );
   void ProcessList(
-    const std::string& input, FrameCoder::coder_ctx& config, bool full
+    const std::string& input, FrameCoder::tsac_cfg& config, bool full
   );
 } // namespace Standard

@@ -51,5 +51,5 @@ private:
   CreateParamHandlers();
   std::string sinputfile, soutputfile;
   CMODE mode;
-  FrameCoder::coder_ctx opt;
+  FrameCoder::tsac_cfg cfg;
 };
