@@ -5,7 +5,6 @@
 // time measuring via C++ 11 chrono
 class Timer {
   using Clock = std::chrono::high_resolution_clock;
-  //using TimeT = std::chrono::milliseconds;
   using durationS = std::chrono::duration<double, std::ratio<1>>;
   using durationMS = std::chrono::duration<double, std::milli>;
   using Timepoint = Clock::time_point;

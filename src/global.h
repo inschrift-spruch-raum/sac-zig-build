@@ -19,7 +19,7 @@ using span_cf64 = std::span<const double>;
 
 constexpr bool UNROLL_AVX256 = false;
 
-constexpr std::string_view SAC_VERSION = "0.7.21";
+constexpr std::string_view SAC_VERSION = "0.7.22";
 
 #define TOSTRING_HELPER(x) #x
 #define TOSTRING(x) TOSTRING_HELPER(x)

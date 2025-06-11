@@ -180,7 +180,6 @@ class LMSADA_Stream : public LS_Stream
 
 class LMS {
   protected:
-
   public:
     LMS(int n,double mu)
     :n(n),x(n),w(n),mu(mu),pred(0)
@@ -227,59 +226,59 @@ class LAD_ADA : public LMS
     LAD_ADA(int n,double mu,double beta=0.95)
     :LMS(n,mu),eg(n),beta(beta)
     {
-      if constexpr (ADA_BIAS_CORR) {
-        power_beta=1.0;
-      }
     }
     void Update(double val) override
     {
       const double serr=MathUtils::sgn(val-pred); // prediction error
-      if constexpr (ADA_BIAS_CORR) {
-        power_beta*=beta;
-      }
       for (int i=0;i<n;i++) {
         double const grad=serr*x[i];
-
         eg[i]=beta*eg[i]+(1.0-beta)*grad*grad; //accumulate gradients
-        double eg_hat;
-        if constexpr (ADA_BIAS_CORR) {
-          eg_hat = eg[i] / (1.0 - power_beta);
-        } else {
-          eg_hat = eg[i];
-        }
-        double g=grad*1.0/(sqrt(eg_hat)+1E-5);// update weights
-        w[i]+=mu*g;
+        double scaled_grad=grad*1.0/(sqrt(eg[i])+1E-5);// update weights
+        w[i]+=mu*scaled_grad;
       }
     }
   protected:
     vec1D eg;
     double beta;
-    //#ifdef ADA_BIAS_CORR
-    double power_beta;
-    //#endif
 };
 
 // Huber loss + ADA-Grad
 class HBR_ADA : public LMS
 {
   public:
-    HBR_ADA(int n,double mu,double beta=0.95,double delta=1)
+    HBR_ADA(int n,double mu,double beta=0.95,double delta=4)
     :LMS(n,mu),eg(n),beta(beta),delta(delta)
     {
     }
+    double get_loss(double err_g,double delta)
+    {
+      if (std::abs(err_g) <= delta)
+        return 0.5*err_g*err_g;
+      else
+        return delta*(std::abs(err_g) - 0.5*delta);
+    }
+    double get_grad(double err_g,double delta)
+    {
+      if (std::abs(err_g) <= delta)
+        return err_g;
+      else
+        return delta*MathUtils::sgn(err_g);
+    }
     void Update(double val) override {
       const double err_g=val-pred; // prediction error
-      double grad_loss;
-      if (std::abs(err_g) <= delta)
-        grad_loss=err_g;
-      else
-        grad_loss=delta*MathUtils::sgn(err_g);
 
+      double grad_loss = get_grad(err_g,delta);
       for (int i=0;i<n;i++) {
         double const grad=grad_loss*x[i];
         eg[i]=beta*eg[i]+(1.0-beta)*grad*grad; //accumulate gradients
-        double g=grad*1.0/(sqrt(eg[i])+1E-5);// update weights
+        const double g=grad*1.0/(sqrt(eg[i])+1E-5);// update weights
         w[i]+=mu*g;
+      }
+
+      if constexpr(0) {
+        double alpha=0.008;
+        delta += alpha * (std::abs(err_g) - delta);
+        delta = std::clamp(delta,1.0,32.0);
       }
     }
   protected:
