@@ -3,8 +3,8 @@ const std = @import("std");
 const cppfiles = [_][]const u8{
     "src/main.cpp",
 
-    "src/entrance/shell.cpp",
-    "src/entrance/standard.cpp",
+    "src/api/cli.cpp",
+    "src/api/lib.cpp",
 
     "src/common/md5.cpp",
     "src/common/utils.cpp",

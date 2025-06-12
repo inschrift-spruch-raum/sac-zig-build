@@ -1,5 +1,6 @@
 #include <algorithm>
 #include <cmath>
+#include <memory>
 #include <numeric>
 #include <thread>
 #include <future>
@@ -330,7 +331,7 @@ void FrameCoder::PrintProfile(SacProfile &profile)
     std::cout << "lm " << param.lm_n << " gamma " << param.lm_alpha << '\n';
 }
 
-double FrameCoder::GetCost(const CostFunction *func,const tch_samples &samples,std::size_t samples_to_optimize) const
+double FrameCoder::GetCost(const std::shared_ptr<CostFunction> func,const tch_samples &samples,std::size_t samples_to_optimize) const
 {
   // return a span over samples
   const auto span_ch = [=](int ch){
@@ -359,13 +360,13 @@ void FrameCoder::Optimize(const FrameCoder::toptim_cfg &ocfg,SacProfile &profile
   int samples_to_optimize=std::min(numsamples_,static_cast<int>(std::ceil(framesize_*ocfg.fraction)));
   const int start_pos=(numsamples_-samples_to_optimize)/2;
 
-  CostFunction *CostFunc=nullptr;
+  std::shared_ptr<CostFunction> CostFunc;
   switch (ocfg.optimize_cost)  {
-    case FrameCoder::SearchCost::L1:CostFunc=new CostL1();break;
-    case FrameCoder::SearchCost::RMS:CostFunc=new CostRMS();break;
-    case FrameCoder::SearchCost::Golomb:CostFunc=new CostGolomb();break;
-    case FrameCoder::SearchCost::Entropy:CostFunc=new CostEntropy();break;
-    case FrameCoder::SearchCost::Bitplane:CostFunc=new CostBitplane();break;
+    case FrameCoder::SearchCost::L1:      CostFunc = std::make_shared<CostL1>();break;
+    case FrameCoder::SearchCost::RMS:     CostFunc = std::make_shared<CostRMS>();break;
+    case FrameCoder::SearchCost::Golomb:  CostFunc = std::make_shared<CostGolomb>();break;
+    case FrameCoder::SearchCost::Entropy: CostFunc = std::make_shared<CostEntropy>();break;
+    case FrameCoder::SearchCost::Bitplane:CostFunc = std::make_shared<CostBitplane>();break;
     default:std::cerr << "  error: unknown FramerCoder::CostFunction\n";return;
   }
 
@@ -415,8 +416,6 @@ void FrameCoder::Optimize(const FrameCoder::toptim_cfg &ocfg,SacProfile &profile
   if (cfg.verbose_level>0) {
     PrintProfile(profile);
   }
-
-  delete CostFunc;
 }
 
 void FrameCoder::CnvError_S2U(const tch_samples &error,int numsamples)

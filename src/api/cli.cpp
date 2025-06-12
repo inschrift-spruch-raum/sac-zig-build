@@ -1,5 +1,5 @@
-#include "shell.h"
-#include "standard.h"
+#include "cli.h"
+#include "lib.h"
 #include "../global.h"
 #include "../common/timer.h"
 #include "../common/utils.h"
