@@ -1,16 +1,15 @@
 #include "cli.h"
-#include "lib.h"
-#include "../global.h"
+
 #include "../common/timer.h"
 #include "../common/utils.h"
+#include "../global.h"
+#include "lib.h"
 
 #include <ranges>
 #include <span>
 #include <string>
 #include <string_view>
 #include <unordered_map>
-
-Shell::Shell(): mode(ENCODE) {}
 
 void Shell::HandleOptimizeParam(std::string_view val) {
   if(val == "NO" || val == "0") {
@@ -56,7 +55,8 @@ void Shell::HandleOptCfgParam(std::string_view val) {
   }
   if(vs.size() >= 2)
     cfg.ocfg.num_threads = std::clamp(std::stoi(vs[1]), 0, 256);
-  if(vs.size() >= 3) cfg.ocfg.sigma = std::clamp(StrUtils::stod_safe(vs[2]), 0., 1.);
+  if(vs.size() >= 3)
+    cfg.ocfg.sigma = std::clamp(StrUtils::stod_safe(vs[2]), 0., 1.);
 }
 
 std::unordered_map<
@@ -67,10 +67,10 @@ Shell::CreateParamHandlers() {
     handlers;
 
   // Mode settings
-  handlers["--ENCODE"] = [](Shell& s, auto) { s.mode = ENCODE; };
-  handlers["--DECODE"] = [](Shell& s, auto) { s.mode = DECODE; };
-  handlers["--LIST"] = [](Shell& s, auto) { s.mode = LIST; };
-  handlers["--LISTFULL"] = [](Shell& s, auto) { s.mode = LISTFULL; };
+  handlers["--ENCODE"] = [](Shell& s, auto) { s.mode = Lib::Mode::ENCODE; };
+  handlers["--DECODE"] = [](Shell& s, auto) { s.mode = Lib::Mode::DECODE; };
+  handlers["--LIST"] = [](Shell& s, auto) { s.mode = Lib::Mode::LIST; };
+  handlers["--LISTFULL"] = [](Shell& s, auto) { s.mode = Lib::Mode::LISTFULL; };
 
   // Verbosity level
   handlers["--VERBOSE"] = [](Shell& s, auto val) {
@@ -136,7 +136,6 @@ Shell::CreateParamHandlers() {
   return handlers;
 }
 
-
 int Shell::Parse(std::span<const char*> args) {
   if(args.size() < 2) {
     std::cout << SACHelp;
@@ -186,18 +185,14 @@ int Shell::Process() {
   myTimer.start();
 
   switch(mode) {
-    case ENCODE:
-      if(Standard::ProcessEncode(sinputfile, soutputfile, cfg)) return 1;
+    case Lib::Mode::ENCODE:
+      if(!Lib::Encode(sinputfile, soutputfile, cfg)) return 1;
       break;
-    case DECODE:
-      Standard::ProcessDecode(sinputfile, soutputfile, cfg);
+    case Lib::Mode::DECODE:
+      if(!Lib::Decode(sinputfile, soutputfile, cfg)) return 1;
       break;
-    case LIST:
-      Standard::ProcessList(sinputfile, cfg, false);
-      break;
-    case LISTFULL:
-      Standard::ProcessList(sinputfile, cfg, true);
-      break;
+    case Lib::Mode::LIST: Lib::List(sinputfile, cfg, false); break;
+    case Lib::Mode::LISTFULL: Lib::List(sinputfile, cfg, true); break;
   }
 
   myTimer.stop();

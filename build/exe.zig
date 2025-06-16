@@ -4,6 +4,7 @@ const cppfiles = [_][]const u8{
     "src/main.cpp",
 
     "src/api/cli.cpp",
+    "src/api/interface.cpp",
     "src/api/lib.cpp",
 
     "src/common/md5.cpp",

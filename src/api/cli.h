@@ -1,6 +1,7 @@
 #pragma once // Shell_H
 
 #include "../libsac/libsac.h"
+#include "lib.h"
 
 #include <span>
 #include <string>
@@ -30,15 +31,9 @@ constexpr std::string_view SACHelp =
   "   --sparse-pcm       enable pcm modelling\n";
 
 class Shell {
-  enum CMODE {
-    ENCODE,
-    DECODE,
-    LIST,
-    LISTFULL
-  };
-
 public:
-  Shell();
+  Shell(): mode(Lib::Mode::ENCODE) {}
+
   int Parse(std::span<const char*> args);
   int Process();
   void SACInfo();
@@ -50,6 +45,6 @@ private:
     std::string_view, std::function<void(Shell&, std::string_view)>>
   CreateParamHandlers();
   std::string sinputfile, soutputfile;
-  CMODE mode;
+  Lib::Mode mode;
   FrameCoder::tsac_cfg cfg;
 };
