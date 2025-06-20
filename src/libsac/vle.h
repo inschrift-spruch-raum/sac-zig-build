@@ -1,5 +1,4 @@
-#ifndef VLE_H
-#define VLE_H
+#pragma once
 
 #include "../model/range.h"
 #include "../model/counter.h"
@@ -7,9 +6,6 @@
 #include "../model/mixer.h"
 #include "../common/utils.h"
 #include <functional>
-
-//#define h1y(v,k) (((v)>>k)^(v))
-//#define h2y(v,k) (((v)*2654435761UL)>>(k))
 
 class StaticLaplaceModel {
   public:
@@ -215,6 +211,3 @@ class GolombRC {
   private:
     RangeCoder &rc;
 };
-
-
-#endif

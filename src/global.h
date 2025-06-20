@@ -17,6 +17,10 @@ using span_i32 = std::span<int32_t>;
 using span_ci32 = std::span<const int32_t>;
 using span_cf64 = std::span<const double>;
 
+#ifndef M_PI
+constexpr long double M_PI = 3.14159265358979323846264338327950288;
+#endif
+
 constexpr bool UNROLL_AVX256 = false;
 
 constexpr std::string_view SAC_VERSION = "0.7.22";

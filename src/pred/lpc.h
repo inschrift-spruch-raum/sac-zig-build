@@ -45,7 +45,7 @@ class OLS {
     }
     vec1D x;
   protected:
-    MathUtils::Cholesky chol;
+    slmath::Cholesky chol;
     vec1D w,b;
     vec2D mcov;
     int n,kmax,km;
