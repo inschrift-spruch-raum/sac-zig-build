@@ -1,22 +1,31 @@
-#ifndef FILE_H
-#define FILE_H
+#pragma once
 
-//#include "../global.h"
 #include <cstdint>
+#include <expected>
 #include <string>
 #include <vector>
 #include <fstream>
 
-class AudioFile
-{
+class AudioFileBase {
   public:
-    AudioFile():samplerate(0),bitspersample(0),numchannels(0),numsamples(0),kbps(0){};
-    AudioFile(const AudioFile &file)
-    :samplerate(file.getSampleRate()),bitspersample(file.getBitsPerSample()),
-    numchannels(file.getNumChannels()),numsamples(file.getNumSamples()),kbps(0){};
+    enum class Mode {
+      Read,
+      Write,
+    };
 
-    int OpenRead(const std::string &fname);
-    int OpenWrite(const std::string &fname);
+    enum class Err {
+      OpenFail,
+      ReadFail,
+
+      IllegalWav,
+      IllegalFormat,
+
+      IllegalSac,      
+    };
+
+    AudioFileBase();
+    AudioFileBase(const AudioFileBase &file);
+    
     std::streampos getFileSize() const {return filesize;};
     int getNumChannels()const {return numchannels;};
     int getSampleRate()const {return samplerate;};
@@ -25,12 +34,26 @@ class AudioFile
     void setKBPS(int kbps) {this->kbps=kbps;};
     int getNumSamples()const {return numsamples;};
     std::streampos readFileSize();
-    void Close() {if (file.is_open()) file.close();};
-    void ReadData(std::vector <uint8_t>&data,size_t len);
-    void WriteData(const std::vector <uint8_t>&data,size_t len);
     std::fstream file;
   protected:
     std::streampos filesize;
     int samplerate,bitspersample,numchannels,numsamples,kbps;
 };
-#endif // FILE_H
+
+template <AudioFileBase::Mode> class AudioFile : public AudioFileBase {};
+
+template <> class AudioFile<AudioFileBase::Mode::Read> : public AudioFileBase {
+  public:
+  AudioFile(const std::string &fname);
+  
+  std::expected<void, AudioFileBase::Err> Open(const std::string &fname);
+  void Read(std::vector <uint8_t>&data,size_t len);
+};
+
+template <> class AudioFile<AudioFileBase::Mode::Write> : public AudioFileBase {
+  public:
+  AudioFile(const std::string &fname, const AudioFileBase &file);
+
+  std::expected<void, AudioFileBase::Err> Open(const std::string &fname);
+  void Write(const std::vector <uint8_t>&data,size_t len);
+};

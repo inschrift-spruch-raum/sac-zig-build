@@ -551,7 +551,7 @@ int FrameCoder::ReadBlockHeader(std::fstream &file, std::vector<SacProfile::Fram
   return 18;
 }
 
-void FrameCoder::WriteEncoded(AudioFile &fout)
+void FrameCoder::WriteEncoded(AudioFile<AudioFileBase::Mode::Write> &fout)
 {
   uint8_t buf[12];
   BitUtils::put32LH(buf,numsamples_);
@@ -562,11 +562,11 @@ void FrameCoder::WriteEncoded(AudioFile &fout)
   for (int ch=0;ch<numchannels_;ch++) {
     framestats[ch].blocksize = encoded[ch].GetBufPos();
     WriteBlockHeader(fout.file, framestats, ch);
-    fout.WriteData(encoded[ch].GetBuf(),framestats[ch].blocksize);
+    fout.Write(encoded[ch].GetBuf(),framestats[ch].blocksize);
   }
 }
 
-void FrameCoder::ReadEncoded(AudioFile &fin)
+void FrameCoder::ReadEncoded(AudioFile<AudioFileBase::Mode::Read> &fin)
 {
   uint8_t buf[8];
   fin.file.read(reinterpret_cast<char*>(buf),4);
@@ -577,7 +577,7 @@ void FrameCoder::ReadEncoded(AudioFile &fin)
 
   for (int ch=0;ch<numchannels_;ch++) {
     ReadBlockHeader(fin.file, framestats, ch);
-    fin.ReadData(encoded[ch].GetBuf(),framestats[ch].blocksize);
+    fin.Read(encoded[ch].GetBuf(),framestats[ch].blocksize);
   }
 }
 
@@ -645,7 +645,7 @@ void Codec::PrintProgress(int samplesprocessed,int totalsamples)
   std::cout << "  " << samplesprocessed << "/" << totalsamples << ":" << std::setw(6) << miscUtils::ConvertFixed(r,1) << "%\r";
 }
 
-void Codec::ScanFrames(Sac &mySac)
+void Codec::ScanFrames(Sac<AudioFileBase::Mode::Read> &mySac)
 {
   std::vector<SacProfile::FrameStats> framestats(mySac.getNumChannels());
   std::streampos fsize=mySac.getFileSize();
@@ -768,7 +768,7 @@ std::vector<Codec::tsub_frame> Codec::Analyse(const std::vector <std::vector<int
   return sub_frames;
 }
 
-int Codec::EncodeFile(Wav &myWav,Sac &mySac)
+int Codec::EncodeFile(Wav<AudioFileBase::Mode::Read> &myWav,Sac<AudioFileBase::Mode::Write> &mySac)
 {
   uint32_t max_framesize=static_cast<uint32_t>(opt_.max_framelen)*myWav.getSampleRate();
 
@@ -778,7 +778,7 @@ int Codec::EncodeFile(Wav &myWav,Sac &mySac)
 
   mySac.mcfg.max_framelen = opt_.max_framelen;
 
-  mySac.WriteSACHeader(myWav);
+  mySac.WriteHeader(myWav);
   std::streampos hdrpos = mySac.file.tellg();
   mySac.WriteMD5(myWav.md5ctx.digest);
   myWav.InitFileBuf(max_framesize);
@@ -843,9 +843,9 @@ int Codec::EncodeFile(Wav &myWav,Sac &mySac)
   return 0;
 }
 
-void Codec::DecodeFile(Sac &mySac,Wav &myWav)
+void Codec::DecodeFile(Sac<AudioFileBase::Mode::Read> &mySac,Wav<AudioFileBase::Mode::Write> &myWav)
 {
-  const Sac::sac_cfg &file_cfg=mySac.mcfg;
+  const SacBase::sac_cfg &file_cfg=mySac.mcfg;
   myWav.InitFileBuf(file_cfg.max_framesize);
   mySac.UnpackMetaData(myWav);
   myWav.WriteHeader();
@@ -867,6 +867,6 @@ void Codec::DecodeFile(Sac &mySac,Wav &myWav)
     samplestodecode-=myFrame.GetNumSamples();
   }
   // pad odd sized data chunk
-  if (data_nbytes&1) myWav.WriteData(std::vector<uint8_t>{0},1);
+  if (data_nbytes&1) myWav.Write(std::vector<uint8_t>{0},1);
   myWav.WriteHeader();
 }

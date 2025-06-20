@@ -49,8 +49,8 @@ class FrameCoder {
     void Unpredict();
     void Encode();
     void Decode();
-    void WriteEncoded(AudioFile &fout);
-    void ReadEncoded(AudioFile &fin);
+    void WriteEncoded(AudioFile<AudioFileBase::Mode::Write> &fout);
+    void ReadEncoded(AudioFile<AudioFileBase::Mode::Read> &fin);
     std::vector <std::vector<int32_t>>samples,error,s2u_error,s2u_error_map,pred;
     std::vector <BufIO> encoded,enc_temp1,enc_temp2;
     std::vector <SacProfile::FrameStats> framestats;
@@ -92,10 +92,10 @@ class Codec {
   public:
     Codec(){};
     Codec(FrameCoder::tsac_cfg &cfg):opt_(cfg) {};
-    int EncodeFile(Wav &myWav,Sac &mySac);
+    int EncodeFile(Wav<AudioFileBase::Mode::Read> &myWav,Sac<AudioFileBase::Mode::Write> &mySac);
     //void EncodeFile(Wav &myWav,Sac &mySac,int profile,int optimize,int sparse_pcm);
-    void DecodeFile(Sac &mySac,Wav &myWav);
-    void ScanFrames(Sac &mySac);
+    void DecodeFile(Sac<AudioFileBase::Mode::Read> &mySac,Wav<AudioFileBase::Mode::Write> &myWav);
+    void ScanFrames(Sac<AudioFileBase::Mode::Read> &mySac);
   private:
     std::vector<Codec::tsub_frame> Analyse(const std::vector <std::vector<int32_t>>&samples,int blocksamples,int min_frame_length,int samples_read);
     void PushState(std::vector<Codec::tsub_frame> &sub_frames,Codec::tsub_frame &curframe,int min_frame_length,int block_state,int samples_block);

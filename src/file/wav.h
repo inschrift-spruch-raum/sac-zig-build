@@ -1,5 +1,4 @@
-#ifndef WAV_H
-#define WAV_H
+#pragma once
 
 #include "file.h"
 #include "../common/md5.h"
@@ -24,18 +23,14 @@ class Chunks {
     uint32_t metadatasize;
 };
 
-class Wav : public AudioFile {
+class WavBase {
   public:
-    Wav(bool verbose=false);
-    Wav(AudioFile &file,bool verbose=false);
-    int ReadHeader();
-    int WriteHeader();
+    WavBase(bool verbose);
+
     void InitFileBuf(int maxframesize);
-    int ReadSamples(std::vector <std::vector <int32_t>>&data,int samplestoread);
-    int WriteSamples(const std::vector <std::vector <int32_t>>&data,int samplestowrite);
     Chunks &GetChunks(){return myChunks;};
     MD5::MD5Context md5ctx;
-  private:
+  protected:
     Chunks myChunks;
     size_t chunkpos;
     std::vector <uint8_t>filebuffer;
@@ -43,4 +38,19 @@ class Wav : public AudioFile {
     int byterate,blockalign,samplesleft;
     bool verbose;
 };
-#endif // WAV_H
+
+template<AudioFileBase::Mode> class Wav : public WavBase {};
+
+template<> class Wav<AudioFileBase::Mode::Read> : public WavBase, public AudioFile<AudioFileBase::Mode::Read> {
+  public:
+    Wav(const std::string &fname, bool verbose=false);
+    std::expected<void, AudioFileBase::Err> ReadHeader();
+    int ReadSamples(std::vector <std::vector <int32_t>>&data,int samplestoread);
+};
+
+template<> class Wav<AudioFileBase::Mode::Write> : public WavBase, public AudioFile<AudioFileBase::Mode::Write> {
+  public:
+    Wav(const std::string &fname, AudioFile<AudioFileBase::Mode::Read> &file,bool verbose=false);
+    void WriteHeader();
+    int WriteSamples(const std::vector <std::vector <int32_t>>&data,int samplestowrite);
+};

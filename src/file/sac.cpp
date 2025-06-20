@@ -1,19 +1,51 @@
 #include "sac.h"
 #include "../common/utils.h"
-#include <iostream>
+#include "file.h"
+#include <expected>
 
-void Sac::WriteMD5(uint8_t digest[16])
-{
-  file.write(reinterpret_cast<char*>(digest),16);
+// Read
+Sac<AudioFileBase::Mode::Read>::Sac(const std::string &fname) try : AudioFile(fname){
+  auto Result = ReadHeader();
+  
+  if (!Result) {
+    std::cout << "warning: input is not a valid .sac file\n";
+    
+    throw AudioFileBase::Err::IllegalSac;
+  }
+} catch (AudioFileBase::Err) {
+  throw;
 }
 
-void Sac::ReadMD5(uint8_t digest[16])
-{
+std::expected<void, AudioFileBase::Err> Sac<AudioFileBase::Mode::Read>::ReadHeader() {
+  uint8_t buf[32];
+  file.read((char*)buf,22);
+  
+  if (!(buf[0]=='S' && buf[1]=='A' && buf[2]=='C' && buf[3]=='2')) {
+    return std::unexpected(AudioFileBase::Err::IllegalSac);
+  }
+
+  numchannels=BitUtils::get16LH(buf+4);
+  samplerate=BitUtils::get32LH(buf+6);
+  bitspersample=BitUtils::get16LH(buf+10);
+  numsamples=BitUtils::get32LH(buf+12);
+  mcfg.max_framelen=buf[16];
+  mcfg.metadatasize=BitUtils::get32LH(buf+18);
+  Read(metadata,mcfg.metadatasize);
+  mcfg.max_framesize=samplerate*static_cast<uint32_t>(mcfg.max_framelen);
+  return {};
+}
+
+void Sac<AudioFileBase::Mode::Read>::ReadMD5(uint8_t digest[16]) {
   file.read(reinterpret_cast<char*>(digest), 16);
 }
 
-int Sac::WriteSACHeader(Wav &myWav)
-{
+// Write
+Sac<AudioFileBase::Mode::Write>::Sac(const std::string &fname, AudioFile<AudioFileBase::Mode::Read> &file) try : 
+AudioFile(fname, file) {} catch (AudioFileBase::Err) {
+  throw;
+}
+
+void Sac<AudioFileBase::Mode::Write>::WriteHeader(Wav<AudioFileBase::Mode::Read> &myWav) {
   Chunks &myChunks=myWav.GetChunks();
   uint8_t buf[32];
   std::vector <uint8_t>metadata;
@@ -33,30 +65,9 @@ int Sac::WriteSACHeader(Wav &myWav)
   BitUtils::put32LH(buf+18,metadatasize);
   file.write((char*)buf,22);
   if (myChunks.PackMetaData(metadata)!=metadatasize) std::cerr << "  warning: metadatasize mismatch\n";
-  WriteData(metadata,metadatasize);
-  return 0;
+  Write(metadata,metadatasize);
 }
 
-int Sac::UnpackMetaData(Wav &myWav)
-{
-  size_t unpackedbytes=myWav.GetChunks().UnpackMetaData(metadata);
-  if (mcfg.metadatasize!=unpackedbytes) {std::cerr << "  warning: unpackmetadata mismatch\n";return 1;}
-  return 0;
-}
-
-int Sac::ReadSACHeader()
-{
-  uint8_t buf[32];
-  file.read((char*)buf,22);
-  if (buf[0]=='S' && buf[1]=='A' && buf[2]=='C' && buf[3]=='2') {
-    numchannels=BitUtils::get16LH(buf+4);
-    samplerate=BitUtils::get32LH(buf+6);
-    bitspersample=BitUtils::get16LH(buf+10);
-    numsamples=BitUtils::get32LH(buf+12);
-    mcfg.max_framelen=buf[16];
-    mcfg.metadatasize=BitUtils::get32LH(buf+18);
-    ReadData(metadata,mcfg.metadatasize);
-    mcfg.max_framesize=samplerate*static_cast<uint32_t>(mcfg.max_framelen);
-    return 0;
-  } else return 1;
+void Sac<AudioFileBase::Mode::Write>::WriteMD5(uint8_t digest[16]) {
+  file.write(reinterpret_cast<char*>(digest),16);
 }

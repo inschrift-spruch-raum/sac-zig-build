@@ -30,7 +30,8 @@ std::string Lib::SearchStr(const FrameCoder::SearchMethod search_func) {
   return StrUtils::EnumToStr(search_func, search_map);
 }
 
-void Lib::PrintAudioInfo(const AudioFile& file) {
+template <AudioFileBase::Mode AudioMode>
+void Lib::PrintAudioInfo(const AudioFile<AudioMode>& file) {
   std::cout << "  WAVE  Codec: PCM (" << file.getKBPS() << " kbps)\n"
             << "  " << file.getSampleRate() << "Hz " << file.getBitsPerSample()
             << " Bit  ";
@@ -62,23 +63,19 @@ void Lib::PrintMode(FrameCoder::tsac_cfg& cfg) {
   std::cout << std::endl;
 }
 
-std::expected<void, Lib::Err> Lib::Encode(
+std::expected<void, AudioFileBase::Err> Lib::Encode(
   const std::string& input, const std::string& output,
   FrameCoder::tsac_cfg& config
 ) {
   std::cout << "Open: '" << input << "': ";
-  Wav myWav(config.verbose_level > 0);
-
-  if(myWav.OpenRead(input) != 0) {
-    std::cout << "could not open(read)\n";
-    return std::unexpected(Lib::Err::OpenReadFail);
+  std::optional<Wav<AudioFileBase::Mode::Read>> myWavOpt;
+  try {
+    myWavOpt.emplace(input, config.verbose_level > 0);
+  } catch (AudioFileBase::Err Err) {
+    return std::unexpected(Err);
   }
-
-  if(myWav.ReadHeader() != 0) {
-    std::cout << "warning: input is not a valid .wav file\n";
-    myWav.Close();
-    return std::unexpected(Lib::Err::IllegalWaw);
-  }
+  
+  auto& myWav = myWavOpt.value();
 
   bool fsupp =
     (myWav.getBitsPerSample() <= 24)
@@ -86,8 +83,7 @@ std::expected<void, Lib::Err> Lib::Encode(
   if(!fsupp) {
     std::cerr << "unsupported input format" << std::endl
               << "must be 1-16 bit, mono/stereo, pcm" << std::endl;
-    myWav.Close();
-    return std::unexpected(Lib::Err::IllegalFormat);
+    return std::unexpected(AudioFileBase::Err::IllegalFormat);
   }
 
   std::cout << "ok (" << myWav.getFileSize() << " Bytes)\n";
@@ -95,13 +91,14 @@ std::expected<void, Lib::Err> Lib::Encode(
   PrintAudioInfo(myWav);
 
   std::cout << "Create: '" << output << "': ";
-  Sac mySac(myWav);
-
-  if(mySac.OpenWrite(output) != 0) {
-    std::cout << "could not create\n";
-    myWav.Close();
-    return std::unexpected(Lib::Err::OpenWriteFail);
+  std::optional<Sac<AudioFileBase::Mode::Write>> mySacOpt;
+  try {
+    mySacOpt.emplace(output, myWav);
+  } catch (AudioFileBase::Err Err) {
+    return std::unexpected(Err);
   }
+
+  auto& mySac = mySacOpt.value();
 
   std::cout << "ok\n";
   PrintMode(config);
@@ -129,29 +126,22 @@ std::expected<void, Lib::Err> Lib::Encode(
             << " bps)"
             << "  " << std::format("{:.3f}x", xrate) << '\n';
 
-  mySac.Close();
-  myWav.Close();
-
   return {};
 }
 
-std::expected<void, Lib::Err> Lib::Decode(
+std::expected<void, AudioFileBase::Err> Lib::Decode(
   const std::string& input, const std::string& output,
   FrameCoder::tsac_cfg& config
 ) {
   std::cout << "Open: '" << input << "': ";
-  Sac mySac;
-
-  if(mySac.OpenRead(input) != 0) {
-    std::cout << "could not open(read)\n";
-    return std::unexpected(Lib::Err::OpenReadFail);
+  std::optional<Sac<AudioFileBase::Mode::Read>> mySacOpt;
+  try {
+    mySacOpt.emplace(input);
+  } catch (AudioFileBase::Err Err) {
+    return std::unexpected(Err);
   }
 
-  if(mySac.ReadSACHeader() != 0) {
-    std::cout << "warning: input is not a valid .sac file\n";
-    mySac.Close();
-    return std::unexpected(Lib::Err::IllegalSac);
-  }
+  auto& mySac = mySacOpt.value();
 
   std::streampos FileSizeSAC = mySac.getFileSize();
   std::cout << "ok (" << FileSizeSAC << " Bytes)\n";
@@ -175,13 +165,15 @@ std::expected<void, Lib::Err> Lib::Decode(
   std::cout << std::dec << '\n';
 
   std::cout << "Create: '" << output << "': ";
-  Wav myWav(mySac);
-
-  if(myWav.OpenWrite(output) != 0) {
-    std::cout << "could not create\n";
-    mySac.Close();
-    return std::unexpected(Lib::Err::OpenWriteFail);
+  std::optional<Wav<AudioFileBase::Mode::Write>> myWavOpt;
+  try {
+    myWavOpt.emplace(output, mySac);
+  } catch (AudioFileBase::Err Err) {
+    return std::unexpected(Err);
   }
+  
+  auto& myWav = myWavOpt.value();
+
   std::cout << "ok\n";
 
   Timer time;
@@ -206,29 +198,24 @@ std::expected<void, Lib::Err> Lib::Decode(
     std::cout << std::dec << ")\n";
   }
 
-  myWav.Close();
-  mySac.Close();
-
   return {};
 }
 
-std::expected<void, Lib::Err>
+std::expected<void, AudioFileBase::Err>
 Lib::List(const std::string& input, FrameCoder::tsac_cfg& config, bool full) {
   std::cout << "Open: '" << input << "': ";
-  Sac mySac;
-
-  if(mySac.OpenRead(input) != 0) {
-    std::cout << "could not open(read)\n";
-    return std::unexpected(Lib::Err::OpenReadFail);
+  std::optional<Sac<AudioFileBase::Mode::Read>> mySacOpt;
+  try {
+    mySacOpt.emplace(input);
+  } catch (AudioFileBase::Err Err) {
+    return std::unexpected(Err);
   }
+
+  auto& mySac = mySacOpt.value();
 
   std::streampos FileSizeSAC = mySac.getFileSize();
   std::cout << "ok (" << FileSizeSAC << " Bytes)\n";
-  if(mySac.ReadSACHeader() != 0) {
-    std::cout << "warning: input is not a valid .sac file\n";
-    mySac.Close();
-    return std::unexpected(Lib::Err::IllegalSac);
-  }
+  
   uint8_t md5digest[16];
   mySac.ReadMD5(md5digest);
   double bps =
