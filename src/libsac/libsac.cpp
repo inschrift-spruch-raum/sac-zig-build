@@ -222,26 +222,35 @@ int FrameCoder::EncodeMonoFrame_Mapped(int ch,int numsamples,BufIO &buf)
   return buf.GetBufPos();
 }
 
-double FrameCoder::CalcRemapError(int ch, int numsamples)
-{
-    std::vector<int32_t>emap(numsamples);
+double FrameCoder::CalcRemapError(int ch, int numsamples) {
     int32_t emax_map = 1;
-    for (int i=0;i<numsamples;i++) {
-      int32_t map_e=framestats[ch].mymap.Map(pred[ch][i],error[ch][i]);
-      int32_t map_ue=MathUtils::S2U(map_e);
-      emap[i]=map_e;
-      s2u_error_map[ch][i]=map_ue;
-      if (map_ue>emax_map) emax_map=map_ue;
+    int64_t sum_error = 0, sum_emap = 0;
+
+    for (int i = 0; i < numsamples; i++) {
+        int32_t map_e = framestats[ch].mymap.Map(pred[ch][i], error[ch][i]);
+        int32_t map_ue = MathUtils::S2U(map_e);
+        sum_emap += std::abs(map_e);
+        s2u_error_map[ch][i] = map_ue;
+        
+        emax_map = std::max(emax_map, map_ue);
+        
+        sum_error += std::abs(error[ch][i]);
     }
-    framestats[ch].maxbpn_map=ilogb(emax_map);
+    
+    framestats[ch].maxbpn_map = std::ilogb(emax_map);
 
-    CostL1 cost;
-
-    double ent1 = cost.Calc(std::span{&error[ch][0],static_cast<unsigned>(numsamples)});
-    double ent2 = cost.Calc(std::span{&emap[0],static_cast<unsigned>(numsamples)});
-    double r=1.0;
-    if (ent2!=0.0) r=ent1/ent2;
-    if (cfg.verbose_level>0) std::cout << "  cost pcm-model: " << ent1 << ' ' << ent2 << ' ' << r << '\n';
+    double ent1 = 0.0, ent2 = 0.0;
+    if (numsamples > 0) {
+      ent1 = sum_error / static_cast<double>(numsamples);
+      ent2 = sum_emap / static_cast<double>(numsamples);
+    }
+    
+    double r = 1.0;
+    if (ent2 != 0.0) r = ent1 / ent2;
+    
+    if (cfg.verbose_level > 0) 
+        std::cout << "  cost pcm-model: " << ent1 << ' ' << ent2 << ' ' << r << '\n';
+    
     return r;
 }
 
@@ -428,7 +437,7 @@ void FrameCoder::CnvError_S2U(const tch_samples &error,int numsamples)
       if (e_s2u>emax) emax=e_s2u;
       s2u_error[ch][i]=e_s2u;
     }
-    framestats[ch].maxbpn=ilogb(emax);
+    framestats[ch].maxbpn=std::ilogb(emax);
   }
 }
 
@@ -690,25 +699,27 @@ std::pair<double,double> Codec::AnalyseSparse(std::span<const int32_t> buf)
   return {spcm.fraction_used,spcm.fraction_cost};
 }
 
-void Codec::PushState(std::vector<Codec::tsub_frame> &sub_frames,Codec::tsub_frame &curframe,int min_frame_length,int block_state=-1,int samples_block=0)
-{
-  if (block_state==curframe.state)
-    curframe.length+=samples_block;
-  else {
-    if (curframe.length < min_frame_length && sub_frames.size()) // extend
-    {
-      sub_frames.back().length+=curframe.length;
-    } else {
-      if (opt_.verbose_level>1)
-        std::cout << "push subframe of length " << curframe.length << " samples\n";
-      sub_frames.push_back(curframe);
+void Codec::PushState(
+  std::vector<Codec::tsub_frame>& sub_frames, Codec::tsub_frame& curframe,
+  int min_frame_length, int block_state = -1, int samples_block = 0
+) {
+  if(block_state == curframe.state) {
+    curframe.length += samples_block;
+    return;
+  }
+  if(curframe.length < min_frame_length && sub_frames.size()) { // extend
+    sub_frames.back().length += curframe.length;
+    return;
+  }
 
-      if (samples_block) {
-        curframe.state=block_state; // set new blockstate
-        curframe.start+=curframe.length;
-        curframe.length=samples_block;
-      }
-    }
+  if(opt_.verbose_level > 1)
+    std::cout << "push subframe of length " << curframe.length << " samples\n";
+  sub_frames.push_back(curframe);
+
+  if(samples_block) {
+    curframe.state = block_state; // set new blockstate
+    curframe.start += curframe.length;
+    curframe.length = samples_block;
   }
 }
 

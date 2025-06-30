@@ -1,4 +1,5 @@
 #include "map.h"
+#include <iostream>
 
 MapEncoder::MapEncoder(RangeCoderSH &rc,std::vector <bool>&usedl,std::vector <bool>&usedh)
 :rc(rc),mixl(4,NMixLogistic(5)),mixh(4,NMixLogistic(5)),finalmix(2),ul(usedl),uh(usedh)

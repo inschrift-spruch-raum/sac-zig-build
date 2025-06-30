@@ -1,8 +1,8 @@
-#ifndef _DOMAIN_H
-#define _DOMAIN_H
+#pragma once
 
-#include "../global.h"
+#include "./model.h"
 #include <cmath>
+#include <cstdio>
 
 static class LogDomain {
   public:
@@ -12,7 +12,7 @@ static class LogDomain {
     {
       for (int i=0;i<PSCALE;i++)
       {
-        FwdTbl[i]=floor(log((i+0.5)/(PSCALE-i-0.5))*double(scale)+0.5);
+        FwdTbl[i]=std::floor(std::log((i+0.5)/(PSCALE-i-0.5))*double(scale)+0.5);
       };
       min=FwdTbl[0];
       max=FwdTbl[PSCALE-1];
@@ -21,8 +21,8 @@ static class LogDomain {
       InvTbl=new int[dscale];
       for (int i=dmin;i<=dmax;i++)
       {
-         double p=double(PSCALE)/(1.0+exp(-double(i)/double(scale)));
-         InvTbl[i-dmin]=floor(p);
+         double p=double(PSCALE)/(1.0+std::exp(-double(i)/double(scale)));
+         InvTbl[i-dmin]=std::floor(p);
       };
     }
     ~LogDomain()
@@ -42,19 +42,17 @@ static class LogDomain {
     void Check()
     {
       int sum=0;
-      printf("%i %i\n",min,max);
-      printf("%i  [%i %i]\n",dscale,dmin,dmax);
-      printf("%i %i\n",Inv(0),Fwd(PSCALEh));
+      std::printf("%i %i\n",min,max);
+      std::printf("%i  [%i %i]\n",dscale,dmin,dmax);
+      std::printf("%i %i\n",Inv(0),Fwd(PSCALEh));
       for (int i=0;i<PSCALE;i++)
       {
         int p=Inv(Fwd(i));
         sum+=(p-i)*(p-i);
       }
-      printf(" mse: %0.2f\n",double(sum)/double(PSCALE));
+      std::printf(" mse: %0.2f\n",double(sum)/double(PSCALE));
     }
   protected:
     int FwdTbl[PSCALE];
     int *InvTbl;
 } myDomain;
-
-#endif

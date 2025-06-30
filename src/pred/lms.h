@@ -64,24 +64,14 @@ class NLMS_Stream : public LS_Stream
     {
       sum_powtab=0;
       for (int i=0;i<n;i++) {
-         powtab[i]=1.0/(pow(1+i,pow_decay));
+         powtab[i]=1.0/(std::pow(1+i,pow_decay));
          sum_powtab+=powtab[i];
-         mutab[i]=pow(mu_decay,i);
+         mutab[i]=std::pow(mu_decay,i);
       }
     }
 
-    double calc_spow(const double *x,const double *powtab,std::size_t n) {
-      if constexpr(AVX_STATE == "AVX2") {
-        return calc_spow__AVX2__(x, powtab, n);
-      }
-
-      return calc_spow__ordinary(x, powtab, n);
-    }
-
-
-    void Update(double val) override
-    {
-      const double spow=calc_spow(x.data(),powtab.data(),n);
+    void Update(double val) override {
+      const double spow=slmath::calc_spow(span_cf64(x.data(), n), span_cf64(powtab.data(),n));
       const double wgrad=mu*(val-pred)*sum_powtab/(eps_pow+spow);
       for (int i=0;i<n;i++) {
         w[i]+=mutab[i]*(wgrad*x[i]);
@@ -93,38 +83,6 @@ class NLMS_Stream : public LS_Stream
     std::vector<double,align_alloc<double>> mutab,powtab;
     double sum_powtab;
     double mu;
-
-    double calc_spow__AVX2__(const double *x,const double *powtab,std::size_t n)
-    {
-      double spow=0.0;
-      std::size_t i=0;
-      if (n>=4) {
-        __m256d sum_vec = _mm256_setzero_pd();
-        for (; i + 4 <= n; i += 4) {
-          __m256d x_vec = _mm256_loadu_pd(&x[i]);
-          __m256d pow_vec = _mm256_load_pd(&powtab[i]);
-          __m256d x_squared = _mm256_mul_pd(x_vec, x_vec);
-          sum_vec = _mm256_fmadd_pd(pow_vec, x_squared, sum_vec);
-        }
-
-        alignas(32) double buffer[4];
-        _mm256_store_pd(buffer, sum_vec);
-        spow = buffer[0] + buffer[1] + buffer[2] + buffer[3];
-      }
-
-      for (;i<n;i++)
-        spow += powtab[i] * (x[i] * x[i]);
-      return spow;
-    }
-
-    double calc_spow__ordinary(const double *x,const double *powtab,std::size_t n)
-    {
-      double spow=0.0;
-      for (std::size_t i=0;i<n;i++) {
-        spow+=powtab[i]*(x[i]*x[i]);
-      }
-      return spow;
-    }
 };
 
 class LADADA_Stream : public LS_Stream

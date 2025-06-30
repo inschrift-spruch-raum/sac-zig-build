@@ -29,13 +29,23 @@ constexpr std::string_view SAC_VERSION = "0.7.22";
 #define TOSTRING(x) TOSTRING_HELPER(x)
 
 #ifdef __clang__
-constexpr std::string_view COMPILER = "clang " TOSTRING(__clang_major__
+constexpr std::string_view COMPILER = "Clang " TOSTRING(__clang_major__
 ) "." TOSTRING(__clang_minor__) "." TOSTRING(__clang_patchlevel__);
+#define OPTIMIZE_ON  _Pragma("GCC optimize(\"Ofast\")")
+#define OPTIMIZE_OFF _Pragma("GCC reset_options")
 #elifdef __GNUC__
-constexpr std::string_view COMPILER = "gcc" TOSTRING(__GNUC__
+constexpr std::string_view COMPILER = "GCC " TOSTRING(__GNUC__
 ) "." TOSTRING(__GNUC_MINOR__) "." TOSTRING(__GNUC_PATCHLEVEL__);
+#define OPTIMIZE_ON  _Pragma("GCC optimize(\"Ofast\")")
+#define OPTIMIZE_OFF _Pragma("GCC reset_options")
+#elifdef _MSC_VER
+constexpr std::string_view COMPILER = "MSVC ";
+#define OPTIMIZE_ON  __pragma(optimize("Ofast", on))
+#define OPTIMIZE_OFF __pragma(optimize("", off))
 #else
 constexpr std::string_view COMPILER = "Unknown";
+#define OPTIMIZE_ON
+#define OPTIMIZE_OFF
 #endif
 
 #ifdef __x86_64__

@@ -2,7 +2,7 @@
 ![Repo size](https://img.shields.io/github/repo-size/slmdev/sac)
 ![Loc](https://sloc.xyz/github/slmdev/sac)
 ![License](https://img.shields.io/github/license/slmdev/sac)
-[![Learn DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/inschrift-spruch-raum/sac-zig-build)
+[![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/inschrift-spruch-raum/sac-zig-build)
 
 # Sac
 

@@ -15,7 +15,12 @@ maxbpn(maxbpn),numsamples(numsamples),lm(maxbpn)
   nrun=0;
   double theta=0.99;
   for (int i=0;i<32;i++) {
-    int p=(std::min)((std::max)((int)round((1.0-1.0/(1+pow(theta,1<<i)))*PSCALE),1),PSCALEm);
+    int p = std::min(
+      std::max(
+        (int)std::round((1.0 - 1.0 / (1 + std::pow(theta, 1 << i))) * PSCALE), 1
+      ),
+      PSCALEm
+    );
     //std::cout << p << ' ';
     p_laplace[i].p1=p;
   }
@@ -53,26 +58,31 @@ void BitplaneCoder::GetSigState(int i)
 
 uint32_t BitplaneCoder::GetAvgSum(int n)
 {
-  uint64_t nsum=0;
-  int nidx=0;
-
-  for (int k=sample-n;k<=sample+n;k++) {
-    if (k>=0 && k<numsamples) {
-      int val=pabuf[k];
-      val&=k<sample?bmask[bpn]:bmask[bpn+1];
-      nsum+=val;
-      nidx++;
-    }
+  uint64_t nsum = 0;
+  int nidx = 0;
+  
+  const int start = std::max(sample - n, 0);
+  const int end = std::min(sample + n, numsamples - 1);
+  
+  for (int k = start; k < sample; k++) {
+    nsum += pabuf[k] & bmask[bpn];
+    nidx++;
   }
-  return nidx>0?(nsum+(nidx-1))/nidx:0;
+  
+  for (int k = sample; k <= end; k++) {
+    nsum += pabuf[k] & bmask[bpn+1];
+    nidx++;
+  }
+  
+  return nidx > 0 ? (nsum + nidx - 1) / nidx : 0;
 }
 
 int BitplaneCoder::PredictLaplace(uint32_t avg_sum)
 {
   double p_l=0.0;
   if (avg_sum>0) {
-    double theta=exp(-1.0/avg_sum);
-    p_l=1.0-1.0/(1+pow(theta,1<<bpn));
+    double theta=std::exp(-1.0/avg_sum);
+    p_l=1.0-1.0/(1+std::pow(theta,1<<bpn));
   };
   int p1=std::min(std::max((int)round(p_l*PSCALE),1),PSCALEm);
   return p1;
@@ -259,4 +269,3 @@ void BitplaneCoder::Decode(DecodeP1 decode_p1,int32_t *buf)
   }
   for (int i=0;i<numsamples;i++) buf[i]=MathUtils::U2S(buf[i]);
 }
-

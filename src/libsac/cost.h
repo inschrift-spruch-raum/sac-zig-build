@@ -14,14 +14,17 @@ class CostFunction {
 
 class CostL1 : public CostFunction {
   public:
-    double Calc(span_ci32 buf) const override
-    {
-      if (buf.size()) {
-        int64_t sum=0;
-        for (const auto val:buf)
-          sum+=std::fabs(val);
-        return sum/static_cast<double>(buf.size());
-      } else return 0.;
+    double Calc(span_ci32 buf) const override {
+      if(buf.empty()) return 0.0;
+
+      // 使用 std::accumulate 计算绝对值之和
+      auto sum = std::accumulate(
+        buf.begin(), buf.end(), int64_t{0}, // 初始化为 int64_t 类型以避免溢出
+        [](int64_t acc, int32_t val) {
+          return acc + std::abs(val);
+        }
+      );
+      return sum / static_cast<double>(buf.size());
     }
 };
 
@@ -93,19 +96,19 @@ class CostEntropy : public CostFunction {
         if constexpr(TOTAL_SELF_INFORMATION) {
           for (const auto val:buf) {
             const double p=cmap(val)*invs;
-            entropy+=p*log(p);
+            entropy+=p*std::log(p);
           }
         } else {
           if (counts.size() < buf.size()) { // over alphabet
             for (const auto c:counts) {
               if (c==0) continue;
               const double p=c*invs;
-              entropy += c*log2(p);
+              entropy += c*std::log2(p);
             }
           } else { // over input
             for (const auto val:buf) {
               const double p=cmap(val)*invs;
-              entropy+=log2(p);
+              entropy+=std::log2(p);
             }
           }
           entropy = -entropy / 8.0;
@@ -161,7 +164,7 @@ class CostBitplane : public CostFunction {
     BufIO iobuf;
     RangeCoderSH rc(iobuf);
     rc.Init();
-    BitplaneCoder bc_rc(ilogb(vmax), numsamples);
+    BitplaneCoder bc_rc(std::ilogb(vmax), numsamples);
     bc_rc.Encode(rc.encode_p1, &ubuf[0]);
     rc.Stop();
     c0 = iobuf.GetBufPos();

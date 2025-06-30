@@ -58,8 +58,8 @@ public:
       const int32_t e0 = val;
       const int32_t e1 = map_val(e0);
 
-      sum0 += pow(std::fabs(e0), cost_pow);
-      sum1 += pow(std::fabs(e1), cost_pow);
+      sum0 += std::pow(std::fabs(e0), cost_pow);
+      sum1 += std::pow(std::fabs(e1), cost_pow);
     }
 
     fraction_cost = (sum1 > 0) ? (sum0 / sum1) : 0.0;

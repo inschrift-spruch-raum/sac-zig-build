@@ -1,5 +1,8 @@
 #pragma once // header guard
 
+#include <algorithm>
+#include <cmath>
+
 // adaptive step-size control
 
 class SSC0

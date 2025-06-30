@@ -1,5 +1,4 @@
-#ifndef MATH_H
-#define MATH_H
+#pragma once
 
 #include "../global.h"
 #include <cassert>
@@ -58,6 +57,7 @@ namespace slmath
       vec2D G;
   };
 
+  OPTIMIZE_ON
   inline double dot_scalar(const span_cf64 &v1,const span_cf64 &v2) {
     if (v1.size() != v2.size()) throw std::invalid_argument("invalid_argument");
     return std::transform_reduce(
@@ -68,6 +68,7 @@ namespace slmath
         std::multiplies<>()
     );
   }
+  OPTIMIZE_OFF
 
   // vector = matrix * vector
   inline vec1D mul(const vec2D &m,const vec1D &v)
@@ -135,8 +136,13 @@ namespace slmath
         m_out[j][i]=u[j]*v[i];
     return m_out;
   }
-
+  
+  OPTIMIZE_ON
+  inline double calc_spow(const span_cf64& x, const span_cf64& powtab) {
+      return std::transform_reduce(
+        x.begin(), x.end(), powtab.begin(), 0.0, std::plus<>(),
+        [](double xi, double pi) { return pi * (xi * xi); }
+      );
+  }
+  OPTIMIZE_OFF
 };
-
-#endif
-

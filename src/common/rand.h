@@ -1,5 +1,4 @@
-#ifndef RAND_H
-#define RAND_H
+#pragma once
 
 #include <random>
 
@@ -29,7 +28,7 @@ class Random {
       return std::cauchy_distribution<double>{mu,sigma}(engine);
     }
     double r_lognorm(double mu,double sigma) { // log-normal
-      return exp(std::normal_distribution<double>{mu,sigma}(engine));
+      return std::exp(std::normal_distribution<double>{mu,sigma}(engine));
     }
     uint32_t ru_geo(double p) { // geometric
       return std::geometric_distribution<uint32_t>{p}(engine);
@@ -44,5 +43,3 @@ class Random {
   private:
     std::mt19937 engine;
 };
-
-#endif

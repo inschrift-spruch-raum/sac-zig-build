@@ -10,7 +10,7 @@ verbose(verbose)
 vec1D OptDDS::generate_candidate(const vec1D &x,int nfunc,double sigma)
 {
   std::vector <int>J; // select J of D variables
-  double p=1.0-log(nfunc)/log(cfg.nfunc_max);
+  double p=1.0-std::log(nfunc)/std::log(cfg.nfunc_max);
 
   for (int i=0;i<ndim;i++) {
     if (rand.event(p)) J.push_back(i);

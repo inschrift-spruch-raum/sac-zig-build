@@ -16,10 +16,10 @@ class StaticLaplaceModel {
         for (int bpn=0;bpn<32;bpn++) {
           double pd=0.;
           if (sum>0) {
-            double theta=exp(-1.0/static_cast<double>(sum));
-            pd=1.0-1.0/(1+pow(theta,1<<bpn));
+            double theta=std::exp(-1.0/static_cast<double>(sum));
+            pd=1.0-1.0/(1+std::pow(theta,1<<bpn));
           }
-          int pi=std::clamp((int)round(pd*PSCALE),1,PSCALEm);
+          int pi=std::clamp((int)std::round(pd*PSCALE),1,PSCALEm);
           pr[sum][bpn]=pi;
         }
       }
@@ -125,7 +125,7 @@ class Golomb {
 
       if (m>1)
       {
-        int b=ceil(log(m)/log(2));
+        int b=ceil(std::log(m)/std::log(2));
         int t=(1<<b)-m;
         if (r < t) {
           for (int i=b-2;i>=0;i--) rc.EncodeBitOne(PSCALEh,((r>>i)&1));
@@ -145,7 +145,7 @@ class Golomb {
 
       if (m>1)
       {
-        int b=ceil(log(m)/log(2));
+        int b=ceil(std::log(m)/std::log(2));
         int t=(1<<b)-m;
         for (int i=b-2;i>=0;i--) r=(r<<1)+rc.DecodeBitOne(PSCALEh);
         if (r>=t) r=((r<<1)+rc.DecodeBitOne(PSCALEh))-t;
