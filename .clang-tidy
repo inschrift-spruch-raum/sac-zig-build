@@ -1,0 +1,22 @@
+Checks: "
+        bugprone-*,
+        cert-*,
+        clang-analyzer-*, 
+        concurrency-*,
+        cppcoreguidelines-*,
+        google-*,
+        hicpp-*,
+        llvm-*,
+        misc-*,
+        modernize-*,
+        performance-*,
+        readability-*,
+
+        -bugprone-easily-swappable-parameters,
+        -cppcoreguidelines-avoid-magic-numbers,
+        -cppcoreguidelines-non-private-member-variables-in-classes,
+        -misc-non-private-member-variables-in-classes,
+        -readability-identifier-length,
+        -readability-magic-numbers,
+        -readability-math-missing-parentheses,
+        "

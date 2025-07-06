@@ -10,7 +10,14 @@ pub fn build(b: *std.Build) void {
     const target = b.standardTargetOptions(.{});
     const optimize = b.standardOptimizeOption(.{});
 
-    var flags = [_][]const u8{ "-std=c++23", "-fexperimental-library", "-mavx2", "", "", "" };
+    var flags = [_][]const u8{
+        "-std=c++23",
+        "-fexperimental-library",
+        "-mavx2",
+        "",
+        "",
+        "",
+    };
 
     if (optimize == .ReleaseFast) {
         flags = [_][]const u8{
