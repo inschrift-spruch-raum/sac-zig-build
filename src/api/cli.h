@@ -32,19 +32,19 @@ constexpr std::string_view SACHelp =
 
 class Shell {
 public:
-  Shell(): mode(Lib::Mode::ENCODE) {}
+  Shell() = default;
 
   int Parse(std::span<const char*> args);
   int Process();
-  void SACInfo();
+  static void SACInfo();
 
 private:
   void HandleOptimizeParam(std::string_view val);
   void HandleOptCfgParam(std::string_view val);
-  std::unordered_map<
+  static std::unordered_map<
     std::string_view, std::function<void(Shell&, std::string_view)>>
   CreateParamHandlers();
   std::string sinputfile, soutputfile;
-  Lib::Mode mode;
+  Lib::Mode mode{Lib::Mode::ENCODE};
   FrameCoder::tsac_cfg cfg;
 };

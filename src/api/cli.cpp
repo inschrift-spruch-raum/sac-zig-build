@@ -24,19 +24,26 @@ void Shell::HandleOptimizeParam(std::string_view val) {
     cfg.ocfg.maxnfunc = std::clamp(std::stoi(vs[1]), 0, 50000);
     if(vs.size() >= 3) {
       std::string cf = StrUtils::str_up(vs[2]);
-      if(cf == "L1") cfg.ocfg.optimize_cost = FrameCoder::SearchCost::L1;
-      else if(cf == "RMS") cfg.ocfg.optimize_cost = FrameCoder::SearchCost::RMS;
-      else if(cf == "GLB")
+      if(cf == "L1") {
+        cfg.ocfg.optimize_cost = FrameCoder::SearchCost::L1;
+      } else if(cf == "RMS") {
+        cfg.ocfg.optimize_cost = FrameCoder::SearchCost::RMS;
+      } else if(cf == "GLB") {
         cfg.ocfg.optimize_cost = FrameCoder::SearchCost::Golomb;
-      else if(cf == "ENT")
+      } else if(cf == "ENT") {
         cfg.ocfg.optimize_cost = FrameCoder::SearchCost::Entropy;
-      else if(cf == "BPN")
+      } else if(cf == "BPN") {
         cfg.ocfg.optimize_cost = FrameCoder::SearchCost::Bitplane;
-      else std::cerr << "warning: unknown cost function '" << vs[2] << "'\n";
+      } else {
+        std::cerr << "warning: unknown cost function '" << vs[2] << "'\n";
+      }
     }
     if(vs.size() >= 4) { cfg.ocfg.optk = std::clamp(stoi(vs[3]), 1, 32); }
-    if(cfg.ocfg.fraction > 0. && cfg.ocfg.maxnfunc > 0) cfg.optimize = 1;
-    else cfg.optimize = 0;
+    if(cfg.ocfg.fraction > 0. && cfg.ocfg.maxnfunc > 0) {
+      cfg.optimize = 1;
+    } else {
+      cfg.optimize = 0;
+    }
   } else {
     std::cerr << "unknown option: " << val << '\n';
   }
@@ -47,16 +54,20 @@ void Shell::HandleOptCfgParam(std::string_view val) {
   StrUtils::SplitToken(val, vs, ",");
   if(vs.size() >= 1) {
     std::string searchMethod = StrUtils::str_up(vs[0]);
-    if(searchMethod == "DDS")
+    if(searchMethod == "DDS") {
       cfg.ocfg.optimize_search = FrameCoder::SearchMethod::DDS;
-    else if(searchMethod == "DE")
+    } else if(searchMethod == "DE") {
       cfg.ocfg.optimize_search = FrameCoder::SearchMethod::DE;
-    else std::cerr << "  warning: invalid opt-cfg='" << searchMethod << "'\n";
+    } else {
+      std::cerr << "  warning: invalid opt-cfg='" << searchMethod << "'\n";
+    }
   }
-  if(vs.size() >= 2)
+  if(vs.size() >= 2) {
     cfg.ocfg.num_threads = std::clamp(std::stoi(vs[1]), 0, 256);
-  if(vs.size() >= 3)
+  }
+  if(vs.size() >= 3) {
     cfg.ocfg.sigma = std::clamp(StrUtils::stod_safe(vs[2]), 0., 1.);
+  }
 }
 
 std::unordered_map<
@@ -74,8 +85,11 @@ Shell::CreateParamHandlers() {
 
   // Verbosity level
   handlers["--VERBOSE"] = [](Shell& s, auto val) {
-    if(val.length()) s.cfg.verbose_level = std::max(0, stoi(std::string(val)));
-    else s.cfg.verbose_level = 1;
+    if(val.length()) {
+      s.cfg.verbose_level = std::max(0, stoi(std::string(val)));
+    } else {
+      s.cfg.verbose_level = 1;
+    }
   };
 
   // Optimization levels
@@ -112,25 +126,36 @@ Shell::CreateParamHandlers() {
 
   // Other parameters
   handlers["--FRAMELEN"] = [](Shell& s, auto val) {
-    if(val.length()) s.cfg.max_framelen = std::max(0, stoi(std::string(val)));
+    if(val.length()) {
+      s.cfg.max_framelen = std::max(0, stoi(std::string(val)));
+    }
   };
   handlers["--MT-MODE"] = [](Shell& s, auto val) {
-    if(val.length()) s.cfg.mt_mode = std::max(0, stoi(std::string(val)));
+    if(val.length()) { s.cfg.mt_mode = std::max(0, stoi(std::string(val))); }
   };
   handlers["--SPARSE-PCM"] = [](Shell& s, auto val) {
-    if(val == "NO" || val == "0") s.cfg.sparse_pcm = 0;
-    else s.cfg.sparse_pcm = 1;
+    if(val == "NO" || val == "0") {
+      s.cfg.sparse_pcm = 0;
+    } else {
+      s.cfg.sparse_pcm = 1;
+    }
   };
   handlers["--STEREO-MS"] = [](Shell& s, auto) { s.cfg.stereo_ms = 1; };
   handlers["--OPT-RESET"] = [](Shell& s, auto) { s.cfg.ocfg.reset = 1; };
   handlers["--OPT-CFG"] = [](Shell& s, auto val) { s.HandleOptCfgParam(val); };
   handlers["--ADAPT-BLOCK"] = [](Shell& s, auto val) {
-    if(val == "NO" || val == "0") s.cfg.adapt_block = 0;
-    else s.cfg.adapt_block = 1;
+    if(val == "NO" || val == "0") {
+      s.cfg.adapt_block = 0;
+    } else {
+      s.cfg.adapt_block = 1;
+    }
   };
   handlers["--ZERO-MEAN"] = [](Shell& s, auto val) {
-    if(val == "NO" || val == "0") s.cfg.zero_mean = 0;
-    else s.cfg.zero_mean = 1;
+    if(val == "NO" || val == "0") {
+      s.cfg.zero_mean = 0;
+    } else {
+      s.cfg.zero_mean = 1;
+    }
   };
 
   return handlers;
@@ -151,7 +176,8 @@ int Shell::Parse(std::span<const char*> args) {
     std::vector<std::string> kv;
     StrUtils::SplitToken(uparam, kv, "=");
     kv.resize(2);
-    std::string &key = kv.at(0), val = kv.at(1);
+    std::string& key = kv.at(0);
+    std::string val = kv.at(1);
 
     if(param.starts_with("--")) {
       if(param_handlers.contains(key)) {
@@ -163,7 +189,9 @@ int Shell::Parse(std::span<const char*> args) {
       if(first) {
         sinputfile = param;
         first = false;
-      } else soutputfile = param;
+      } else {
+        soutputfile = param;
+      }
     }
   }
   // configure opt method
@@ -186,19 +214,25 @@ int Shell::Process() {
 
   switch(mode) {
     case Lib::Mode::ENCODE:
-      if(!Lib::Encode(sinputfile, soutputfile, cfg)) return 1;
+      if(!Lib::Encode(sinputfile, soutputfile, cfg)) { return 1; }
       break;
     case Lib::Mode::DECODE:
-      if(!Lib::Decode(sinputfile, soutputfile, cfg)) return 1;
+      if(!Lib::Decode(sinputfile, soutputfile, cfg)) { return 1; }
       break;
-    case Lib::Mode::LIST: Lib::List(sinputfile, cfg, false); break;
-    case Lib::Mode::LISTFULL: Lib::List(sinputfile, cfg, true); break;
+    case Lib::Mode::LIST:
+      if(!Lib::List(sinputfile, cfg, false)) { return 1; }
+      break;
+    case Lib::Mode::LISTFULL:
+      if(!Lib::List(sinputfile, cfg, true)) { return 1; }
+      break;
   }
 
   myTimer.stop();
   std::cout << "\n  Time:    ["
-            << miscUtils::getTimeStrFromSeconds(round(myTimer.elapsedS()))
-            << "]" << std::endl;
+            << miscUtils::getTimeStrFromSeconds(
+                 static_cast<int>(std::round(myTimer.elapsedS()))
+               )
+            << "]" << '\n';
   return 0;
 }
 

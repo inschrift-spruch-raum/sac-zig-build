@@ -1,3 +1,4 @@
+/*
 #pragma once
 #include <functional>
 #include <memory>
@@ -34,3 +35,4 @@ private:
   GlobalData() = delete;
   ~GlobalData() = delete;
 };
+*/

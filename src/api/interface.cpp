@@ -1,3 +1,4 @@
+/*
 #include "interface.h"
 #include <memory>
 #include <stdexcept>
@@ -27,3 +28,4 @@ const std::shared_ptr<const GlobalSet> GlobalData::getData() {
   }
   return data;
 }
+  */

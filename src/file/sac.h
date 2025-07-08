@@ -30,9 +30,9 @@ template <AudioFileBase::Mode> class Sac : public SacBase {};
 
 template <> class Sac<AudioFileBase::Mode::Read> : public SacBase, public AudioFile<AudioFileBase::Mode::Read> {
   public:
-    Sac(const std::string &fname);
+    explicit Sac(const std::string &fname);
 
-    std::expected<void, AudioFileBase::Err> ReadHeader();
+    std::expected<void, AudioFileErr::Err> ReadHeader();
     void ReadMD5(uint8_t digest[16]);
 };
 
