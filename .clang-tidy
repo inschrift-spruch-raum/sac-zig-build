@@ -15,6 +15,7 @@ Checks: "
         -bugprone-easily-swappable-parameters,
         -cppcoreguidelines-avoid-magic-numbers,
         -cppcoreguidelines-non-private-member-variables-in-classes,
+        -cppcoreguidelines-pro-bounds-constant-array-index,
         -cppcoreguidelines-pro-type-reinterpret-cast,
         -misc-non-private-member-variables-in-classes,
         -readability-identifier-length,
