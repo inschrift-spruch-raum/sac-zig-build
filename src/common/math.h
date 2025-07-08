@@ -13,28 +13,28 @@ namespace slmath
   {
     public:
       const double ftol=1E-8;
-      Cholesky(int n)
+      Cholesky(std::int32_t n)
       :n(n),G(n,vec1D(n))
       {
 
       }
-      int Factor(const vec2D &matrix,const double nu)
+      std::int32_t Factor(const vec2D &matrix,const double nu)
       {
-        for (int i=0;i<n;i++) //copy lower triangular matrix
+        for (std::int32_t i=0;i<n;i++) //copy lower triangular matrix
           std::copy_n(begin(matrix[i]),i+1,begin(G[i]));
 
-        for (int i=0;i<n;i++) {
+        for (std::int32_t i=0;i<n;i++) {
 
           // off-diagonal
-          for (int j=0;j<i;j++) {
+          for (std::int32_t j=0;j<i;j++) {
             double sum=G[i][j];
-            for (int k=0;k<j;k++) sum-=(G[i][k]*G[j][k]);
+            for (std::int32_t k=0;k<j;k++) sum-=(G[i][k]*G[j][k]);
             G[i][j]=sum/G[j][j];
           }
 
           // diagonal
           double sum=G[i][i]+nu; //add regularization
-          for (int k=0;k<i;k++) sum-=(G[i][k]*G[i][k]);
+          for (std::int32_t k=0;k<i;k++) sum-=(G[i][k]*G[i][k]);
           if (sum>ftol) G[i][i]=std::sqrt(sum);
           else return 1;
         }
@@ -42,18 +42,18 @@ namespace slmath
       }
       void Solve(const vec1D &b,vec1D &x)
       {
-        for (int i=0;i<n;i++) {
+        for (std::int32_t i=0;i<n;i++) {
           double sum=b[i];
-          for (int j=0;j<i;j++) sum-=(G[i][j]*x[j]);
+          for (std::int32_t j=0;j<i;j++) sum-=(G[i][j]*x[j]);
           x[i]=sum/G[i][i];
         }
-        for (int i=n-1;i>=0;i--) {
+        for (std::int32_t i=n-1;i>=0;i--) {
           double sum=x[i];
-          for (int j=i+1;j<n;j++) sum-=(G[j][i]*x[j]);
+          for (std::int32_t j=i+1;j<n;j++) sum-=(G[j][i]*x[j]);
           x[i]=sum/G[i][i];
         }
       }
-      int n;
+      std::int32_t n;
       vec2D G;
   };
 
@@ -92,11 +92,11 @@ namespace slmath
   inline vec2D mul(const vec2D &m1, const vec2D &m2)
   {
     vec2D m_out(m1.size(), vec1D(m2[0].size()));
-    for (int j=0;j<(int)m_out.size();j++)
-      for (int i=0;i<(int)m_out[0].size();i++)
+    for (std::int32_t j=0;j<(std::int32_t)m_out.size();j++)
+      for (std::int32_t i=0;i<(std::int32_t)m_out[0].size();i++)
       {
         double sum=0;
-        for (int k=0;k<(int)m2.size();k++)
+        for (std::int32_t k=0;k<(std::int32_t)m2.size();k++)
           sum += m1[j][k]*m2[k][i];
         m_out[j][i] = sum;
       }
@@ -128,11 +128,11 @@ namespace slmath
   // outer product of u*v^T
   inline vec2D outer(const vec1D &u,const vec1D &v)
   {
-    int nrows=u.size();
-    int ncols=v.size();
+    std::int32_t nrows=u.size();
+    std::int32_t ncols=v.size();
     vec2D m_out(nrows, vec1D(ncols));
-    for (int j=0;j<nrows;j++)
-      for (int i=0;i<ncols;i++)
+    for (std::int32_t j=0;j<nrows;j++)
+      for (std::int32_t i=0;i<ncols;i++)
         m_out[j][i]=u[j]*v[i];
     return m_out;
   }

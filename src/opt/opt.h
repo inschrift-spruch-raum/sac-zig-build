@@ -41,5 +41,5 @@ class Opt {
 
     Random rand;
     const box_const pb;
-    const int ndim;
+    const std::int32_t ndim;
 };

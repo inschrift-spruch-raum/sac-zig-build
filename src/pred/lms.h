@@ -8,7 +8,7 @@
 
 class LS_Stream {
   public:
-    LS_Stream(int n)
+    LS_Stream(std::int32_t n)
     :n(n),x(n),w(n),pred(0.)
     {
 
@@ -20,7 +20,7 @@ class LS_Stream {
     virtual void Update(double val)=0;
     virtual ~LS_Stream(){};
   protected:
-    int n;
+    std::int32_t n;
     RollBuffer2<double>x;
     std::vector<double,align_alloc<double>> w;
     double pred;
@@ -29,14 +29,14 @@ class LS_Stream {
 /*
 powtab[0] = 1.0;
 double r = pow(n, -pow_decay / double(n-1));
-for (int i = 1; i < n; i++) {
+for (std::int32_t i = 1; i < n; i++) {
     powtab[i] = powtab[i-1] * r;
 }
 
-void update_w_avx(double* w, const double* mutab, const double* x, double wgrad, int n)
+void update_w_avx(double* w, const double* mutab, const double* x, double wgrad, std::int32_t n)
 {
     __m256d wgrad_vec = _mm256_set1_pd(wgrad);
-    int i = 0;
+    std::int32_t i = 0;
 
 
     for (; i <= n - 4; i += 4) {
@@ -59,11 +59,11 @@ class NLMS_Stream : public LS_Stream
 {
   const double eps_pow=1.0;
   public:
-    NLMS_Stream(int n,double mu,double mu_decay=1.0,double pow_decay=0.8)
+    NLMS_Stream(std::int32_t n,double mu,double mu_decay=1.0,double pow_decay=0.8)
     :LS_Stream(n),mutab(n),powtab(n),mu(mu)
     {
       sum_powtab=0;
-      for (int i=0;i<n;i++) {
+      for (std::int32_t i=0;i<n;i++) {
          powtab[i]=1.0/(std::pow(1+i,pow_decay));
          sum_powtab+=powtab[i];
          mutab[i]=std::pow(mu_decay,i);
@@ -73,7 +73,7 @@ class NLMS_Stream : public LS_Stream
     void Update(double val) override {
       const double spow=slmath::calc_spow(span_cf64(x.data(), n), span_cf64(powtab.data(),n));
       const double wgrad=mu*(val-pred)*sum_powtab/(eps_pow+spow);
-      for (int i=0;i<n;i++) {
+      for (std::int32_t i=0;i<n;i++) {
         w[i]+=mutab[i]*(wgrad*x[i]);
       }
       x.push(val);
@@ -88,7 +88,7 @@ class NLMS_Stream : public LS_Stream
 class LADADA_Stream : public LS_Stream
 {
   public:
-    LADADA_Stream(int n,double mu,double beta=0.97)
+    LADADA_Stream(std::int32_t n,double mu,double beta=0.97)
     :LS_Stream(n),eg(n),mu(mu),beta(beta)
     {
 
@@ -96,7 +96,7 @@ class LADADA_Stream : public LS_Stream
     void Update(double val) override
     {
       const double serr=MathUtils::sgn(val-pred); // prediction error
-      for (int i=0;i<n;i++) {
+      for (std::int32_t i=0;i<n;i++) {
         double const grad=serr*x[i];
         eg[i]=beta*eg[i]+(1.0-beta)*grad*grad; //accumulate gradients
         double g=grad*1.0/(sqrt(eg[i])+1E-5);// update weights
@@ -112,7 +112,7 @@ class LADADA_Stream : public LS_Stream
 class LMSADA_Stream : public LS_Stream
 {
   public:
-    LMSADA_Stream(int n,double mu,double beta=0.97,double nu=0.0)
+    LMSADA_Stream(std::int32_t n,double mu,double beta=0.97,double nu=0.0)
     :LS_Stream(n),eg(n),mu(mu),beta(beta),nu(nu)
     {
 
@@ -120,7 +120,7 @@ class LMSADA_Stream : public LS_Stream
     void Update(double val) override
     {
       const double err=val-pred; // prediction error
-      for (int i=0;i<n;i++) {
+      for (std::int32_t i=0;i<n;i++) {
         double const grad=err*x[i]-nu*MathUtils::sgn(w[i]);
         eg[i]=beta*eg[i]+(1.0-beta)*grad*grad; //accumulate gradients
         double g=grad*1.0/(sqrt(eg[i])+1E-5);// update weights
@@ -137,7 +137,7 @@ class LMSADA_Stream : public LS_Stream
 class LMS {
   protected:
   public:
-    LMS(int n,double mu)
+    LMS(std::int32_t n,double mu)
     :n(n),x(n),w(n),mu(mu),pred(0)
     {
     }
@@ -148,7 +148,7 @@ class LMS {
     }
     virtual void Update(double)=0;
     virtual ~LMS(){};
-    int n;
+    std::int32_t n;
     vec1D x,w;
   protected:
     double mu,pred;
@@ -157,13 +157,13 @@ class LMS {
 class LMS_ADA : public LMS
 {
   public:
-    LMS_ADA(int n,double mu,double beta=0.95,double nu=0.001)
+    LMS_ADA(std::int32_t n,double mu,double beta=0.95,double nu=0.001)
     :LMS(n,mu),eg(n),beta(beta),nu(nu)
     {
     }
     void Update(double val) override {
       const double err=val-pred; // prediction error
-      for (int i=0;i<n;i++) {
+      for (std::int32_t i=0;i<n;i++) {
         double const grad=err*x[i] - nu*MathUtils::sgn(w[i]); // gradient + l1-regularization
 
         eg[i]=beta*eg[i]+(1.0-beta)*grad*grad; //accumulate gradients
@@ -179,14 +179,14 @@ class LMS_ADA : public LMS
 class LAD_ADA : public LMS
 {
   public:
-    LAD_ADA(int n,double mu,double beta=0.95)
+    LAD_ADA(std::int32_t n,double mu,double beta=0.95)
     :LMS(n,mu),eg(n),beta(beta)
     {
     }
     void Update(double val) override
     {
       const double serr=MathUtils::sgn(val-pred); // prediction error
-      for (int i=0;i<n;i++) {
+      for (std::int32_t i=0;i<n;i++) {
         double const grad=serr*x[i];
         eg[i]=beta*eg[i]+(1.0-beta)*grad*grad; //accumulate gradients
         double scaled_grad=grad*1.0/(sqrt(eg[i])+1E-5);// update weights
@@ -202,7 +202,7 @@ class LAD_ADA : public LMS
 class HBR_ADA : public LMS
 {
   public:
-    HBR_ADA(int n,double mu,double beta=0.95,double delta=4)
+    HBR_ADA(std::int32_t n,double mu,double beta=0.95,double delta=4)
     :LMS(n,mu),eg(n),beta(beta),delta(delta)
     {
     }
@@ -224,7 +224,7 @@ class HBR_ADA : public LMS
       const double err_g=val-pred; // prediction error
 
       double grad_loss = get_grad(err_g,delta);
-      for (int i=0;i<n;i++) {
+      for (std::int32_t i=0;i<n;i++) {
         double const grad=grad_loss*x[i];
         eg[i]=beta*eg[i]+(1.0-beta)*grad*grad; //accumulate gradients
         const double g=grad*1.0/(sqrt(eg[i])+1E-5);// update weights
@@ -245,7 +245,7 @@ class HBR_ADA : public LMS
 class LMS_ADAM : public LMS
 {
   public:
-    LMS_ADAM(int n,double mu,double beta1=0.9,double beta2=0.999)
+    LMS_ADAM(std::int32_t n,double mu,double beta1=0.9,double beta2=0.999)
     :LMS(n,mu),M(n),S(n),beta1(beta1),beta2(beta2)
     {
       power_beta1=1.0;
@@ -257,7 +257,7 @@ class LMS_ADAM : public LMS
       power_beta11*=beta1;
       power_beta2*=beta2;
       const double err=val-pred; // prediction error
-      for (int i=0;i<n;i++) {
+      for (std::int32_t i=0;i<n;i++) {
         double const grad=err*x[i]; // gradient
 
         M[i]=beta1*M[i]+(1.0-beta1)*grad;
@@ -278,7 +278,7 @@ class LMS_ADAM : public LMS
 // sign-sign lms algorithm
 class SSLMS : public LMS {
   public:
-      SSLMS(int n,double mu)
+      SSLMS(std::int32_t n,double mu)
       :LMS(n,mu)
       {
       }
@@ -286,7 +286,7 @@ class SSLMS : public LMS {
       {
         double e=val-pred;
         const double wf=mu*MathUtils::sgn(e);
-        for (int i=0;i<n;i++) {
+        for (std::int32_t i=0;i<n;i++) {
            w[i]+=wf*MathUtils::sgn(x[i]);
         }
       }

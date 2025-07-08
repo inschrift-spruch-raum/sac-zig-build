@@ -1,9 +1,9 @@
 #include "profile.h"
 
-int SacProfile::LoadBaseProfile()
+std::int32_t SacProfile::LoadBaseProfile()
 {
-  const int mo_lpc=32; // maximum ols order
-  const int wbits_lms=13; // maximum nlms order 2^wbits_lms
+  const std::int32_t mo_lpc=32; // maximum ols order
+  const std::int32_t wbits_lms=13; // maximum nlms order 2^wbits_lms
   SacProfile &profile=*this;
 
   profile.Init(53);

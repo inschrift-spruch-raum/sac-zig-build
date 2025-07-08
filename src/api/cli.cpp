@@ -94,7 +94,7 @@ Shell::CreateParamHandlers() {
 
   // Optimization levels
   const auto set_optimization =
-    [](Shell& s, double fraction, int maxnfunc, double sigma) {
+    [](Shell& s, double fraction, std::int32_t maxnfunc, double sigma) {
       s.cfg.optimize = 1;
       s.cfg.ocfg.fraction = fraction;
       s.cfg.ocfg.maxnfunc = maxnfunc;
@@ -161,7 +161,7 @@ Shell::CreateParamHandlers() {
   return handlers;
 }
 
-int Shell::Parse(std::span<const char*> args) {
+std::int32_t Shell::Parse(std::span<const char*> args) {
   if(args.size() < 2) {
     std::cout << SACHelp;
     return 1;
@@ -208,7 +208,7 @@ int Shell::Parse(std::span<const char*> args) {
   return 0;
 }
 
-int Shell::Process() {
+std::int32_t Shell::Process() {
   Timer myTimer;
   myTimer.start();
 
@@ -230,14 +230,14 @@ int Shell::Process() {
   myTimer.stop();
   std::cout << "\n  Time:    ["
             << miscUtils::getTimeStrFromSeconds(
-                 static_cast<int>(std::round(myTimer.elapsedS()))
+                 static_cast<std::int32_t>(std::round(myTimer.elapsedS()))
                )
             << "]" << '\n';
   return 0;
 }
 
 void Shell::SACInfo() {
-  const int kValueWidth = 35;
+  const std::int32_t kValueWidth = 35;
 
   std::cout << "+----------------------- Sac -----------------------+\n"
             << "| State-of-the-art lossless audio compression model |\n"

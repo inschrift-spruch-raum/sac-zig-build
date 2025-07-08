@@ -13,8 +13,8 @@
 using vec1D = std::vector<double>;
 using vec2D = std::vector<std::vector<double>>;
 using ptr_vec1D = std::vector<double*>;
-using span_i32 = std::span<int32_t>;
-using span_ci32 = std::span<const int32_t>;
+using span_i32 = std::span<std::int32_t>;
+using span_ci32 = std::span<const std::int32_t>;
 using span_cf64 = std::span<const double>;
 
 #ifndef M_PI

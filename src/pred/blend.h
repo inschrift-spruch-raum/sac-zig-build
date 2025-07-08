@@ -4,7 +4,7 @@
 #include "lms.h"
 
 // blend two expert outputs via sigmoid
-template <int log_regression=0>
+template <std::int32_t log_regression=0>
 class Blend2 {
   public:
     Blend2(double beta=0.95,double theta_mu=0.005,double scale=5)

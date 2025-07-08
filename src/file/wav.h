@@ -7,36 +7,36 @@
 class Chunks {
   public:
     struct tChunk {
-      uint32_t id,csize;
-      std::vector <uint8_t>data;
+      std::uint32_t id,csize;
+      std::vector <std::uint8_t>data;
     };
     Chunks()= default;
-    void Append(uint32_t chunkid,uint32_t chunksize, std::span<const uint8_t> data);
-    size_t GetNumChunks() const {return wavchunks.size();};
-    uint32_t GetChunkID(int chunk) const {return wavchunks[chunk].id;};
-    uint32_t GetChunkSize(int chunk) const {return wavchunks[chunk].csize;};
-    size_t GetChunkDataSize(int chunk) const {return wavchunks[chunk].data.size();};
-    uint32_t GetMetaDataSize() const {return metadatasize;};
-    size_t PackMetaData(std::vector <uint8_t>&data);
-    size_t UnpackMetaData(const std::vector <uint8_t>&data);
+    void Append(std::uint32_t chunkid,std::uint32_t chunksize, std::span<const std::uint8_t> data);
+    std::size_t GetNumChunks() const {return wavchunks.size();};
+    std::uint32_t GetChunkID(std::int32_t chunk) const {return wavchunks[chunk].id;};
+    std::uint32_t GetChunkSize(std::int32_t chunk) const {return wavchunks[chunk].csize;};
+    std::size_t GetChunkDataSize(std::int32_t chunk) const {return wavchunks[chunk].data.size();};
+    std::uint32_t GetMetaDataSize() const {return metadatasize;};
+    std::size_t PackMetaData(std::vector <std::uint8_t>&data);
+    std::size_t UnpackMetaData(const std::vector <std::uint8_t>&data);
     std::vector <tChunk> wavchunks;
   private:
-    uint32_t metadatasize{0};
+    std::uint32_t metadatasize{0};
 };
 
 class WavBase {
   public:
     explicit WavBase(bool verbose);
 
-    void InitFileBuf(int maxframesize);
+    void InitFileBuf(std::int32_t maxframesize);
     Chunks &GetChunks(){return myChunks;};
     MD5::MD5Context md5ctx;
   protected:
     Chunks myChunks;
-    size_t chunkpos;
-    std::vector <uint8_t>filebuffer;
+    std::size_t chunkpos;
+    std::vector <std::uint8_t>filebuffer;
     std::streampos datapos,endofdata;
-    int byterate,blockalign,samplesleft;
+    std::int32_t byterate,blockalign,samplesleft;
     bool verbose;
 };
 
@@ -46,12 +46,12 @@ template<> class Wav<AudioFileBase::Mode::Read> : public WavBase, public AudioFi
   public:
     explicit Wav(const std::string &fname, bool verbose=false);
     std::expected<void, AudioFileErr::Err> ReadHeader();
-    int ReadSamples(std::vector <std::vector <int32_t>>&data,int samplestoread);
+    std::int32_t ReadSamples(std::vector <std::vector <std::int32_t>>&data,std::int32_t samplestoread);
 };
 
 template<> class Wav<AudioFileBase::Mode::Write> : public WavBase, public AudioFile<AudioFileBase::Mode::Write> {
   public:
     Wav(const std::string &fname, AudioFile<AudioFileBase::Mode::Read> &file,bool verbose=false);
     void WriteHeader();
-    int WriteSamples(const std::vector <std::vector <int32_t>>&data,int samplestowrite);
+    std::int32_t WriteSamples(const std::vector <std::vector <std::int32_t>>&data,std::int32_t samplestowrite);
 };

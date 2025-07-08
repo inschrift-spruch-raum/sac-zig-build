@@ -9,14 +9,14 @@
 class SACProfile {
   public:
     struct FrameStats {
-      int maxbpn,maxbpn_map;
+      std::int32_t maxbpn,maxbpn_map;
       bool enc_mapped;
-      int32_t blocksize,minval,maxval,mean;
+      std::int32_t blocksize,minval,maxval,mean;
       Remap mymap;
     };
     struct elem {
       float vmin,vmax;
-      std::variant<float,uint16_t>val;
+      std::variant<float,std::uint16_t>val;
     };
     void add_float(float vmin,float vmax,float val) {
       vparam.push_back(elem{vmin,vmax,val});
@@ -55,15 +55,15 @@ class SACProfile {
     }
     std::vector<elem> vparam;
   protected:
-    int index;
+    std::int32_t index;
 };
 
 class SacProfile {
   public:
     struct FrameStats {
-      int maxbpn,maxbpn_map;
+      std::int32_t maxbpn,maxbpn_map;
       bool enc_mapped;
-      int32_t blocksize,minval,maxval,mean;
+      std::int32_t blocksize,minval,maxval,mean;
       Remap mymap;
     };
 
@@ -72,28 +72,28 @@ class SacProfile {
     };
 
       SacProfile(){};
-      void Init(int numcoefs)
+      void Init(std::int32_t numcoefs)
       {
          coefs.resize(numcoefs);
       }
-      SacProfile(int numcoefs)
+      SacProfile(std::int32_t numcoefs)
       :coefs(numcoefs)
       {
 
       }
-      int LoadBaseProfile();
+      std::int32_t LoadBaseProfile();
       std::size_t get_size() {return coefs.size();};
-      void Set(int num,double vmin,double vmax,double vdef)
+      void Set(std::int32_t num,double vmin,double vmax,double vdef)
       {
-        if (num>=0 && num< static_cast<int>(coefs.size())) {
+        if (num>=0 && num< static_cast<std::int32_t>(coefs.size())) {
           coefs[num].vmin=vmin;
           coefs[num].vmax=vmax;
           coefs[num].vdef=vdef;
         }
       }
-      void Set(int num,const std::vector<float>&x)
+      void Set(std::int32_t num,const std::vector<float>&x)
       {
-        if (num>=0 && num<static_cast<int>(coefs.size()) && (x.size()>=3)) {
+        if (num>=0 && num<static_cast<std::int32_t>(coefs.size()) && (x.size()>=3)) {
           coefs[num].vmin=x[0];
           coefs[num].vmax=x[1];
           coefs[num].vdef=x[2];

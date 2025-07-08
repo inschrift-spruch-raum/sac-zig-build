@@ -7,12 +7,12 @@ verbose(verbose)
 {
 }
 
-vec1D OptDDS::generate_candidate(const vec1D &x,int nfunc,double sigma)
+vec1D OptDDS::generate_candidate(const vec1D &x,std::int32_t nfunc,double sigma)
 {
-  std::vector <int>J; // select J of D variables
+  std::vector <std::int32_t>J; // select J of D variables
   double p=1.0-std::log(nfunc)/std::log(cfg.nfunc_max);
 
-  for (int i=0;i<ndim;i++) {
+  for (std::int32_t i=0;i<ndim;i++) {
     if (rand.event(p)) J.push_back(i);
   }
   // set empty? select random element
@@ -30,7 +30,7 @@ vec1D OptDDS::generate_candidate(const vec1D &x,int nfunc,double sigma)
 // sequential single threaded
 Opt::ppoint OptDDS::run_single(opt_func func,const vec1D &xstart)
 {
-  int nfunc=1;
+  std::int32_t nfunc=1;
   ppoint xb{func(xstart),xstart};
   if (verbose) std::cout << xb.first << '\n';
 
@@ -70,13 +70,13 @@ Opt::ppoint OptDDS::run_mt(opt_func func,const vec1D &xstart)
   // step size control
   SSC1 ssc(0.05,0.10,0.05);
 
-  int nfunc=1;
+  std::int32_t nfunc=1;
   while (nfunc<cfg.nfunc_max) {
-    const int nthreads = std::min(cfg.nfunc_max-nfunc,cfg.num_threads);
+    const std::int32_t nthreads = std::min(cfg.nfunc_max-nfunc,cfg.num_threads);
 
     // generate candidates around current xbest
     opt_points x_gen(nthreads);
-    for (int i=0;i<nthreads;i++) {
+    for (std::int32_t i=0;i<nthreads;i++) {
       x_gen[i].second=generate_candidate(xb.second,nfunc,sigma);
       nfunc++;
     };
@@ -85,7 +85,7 @@ Opt::ppoint OptDDS::run_mt(opt_func func,const vec1D &xstart)
 
     // select
     ppoint xb_old=xb;
-    int nsucc=0;
+    std::int32_t nsucc=0;
     for (const auto &xg : x_gen)
       if (xg.first<xb_old.first)  {
         nsucc++; // count as success, if better than parent

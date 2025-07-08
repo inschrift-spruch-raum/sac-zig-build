@@ -8,32 +8,32 @@ OptDE::OptDE(const DECfg &cfg,const box_const &parambox,bool verbose)
 }
 
 // select k unique elements from 0..n-1 except ie
-std::vector<int> OptDE::select_k_unique_except(int n,int ie,int k)
+std::vector<std::int32_t> OptDE::select_k_unique_except(std::int32_t n,std::int32_t ie,std::int32_t k)
 {
-  std::vector<int>r;
+  std::vector<std::int32_t>r;
   if (k>=n-1) return r;
 
-  std::vector<int> e(n);
+  std::vector<std::int32_t> e(n);
   std::iota(std::begin(e),std::end(e),0);
   std::erase(e,ie);
 
-  for (int i=0;i<k;i++)
+  for (std::int32_t i=0;i<k;i++)
   {
-    int idx = rand.ru_int(0,e.size()-1);
-    int val = e[idx];
+    std::int32_t idx = rand.ru_int(0,e.size()-1);
+    std::int32_t val = e[idx];
     r.push_back(val);
     std::erase(e,val);
   }
   return r;
 }
 
-auto OptDE::generate_candidate(const opt_points &pop,const vec1D &xbest,int iagent,double mCR,double mF)
+auto OptDE::generate_candidate(const opt_points &pop,const vec1D &xbest,std::int32_t iagent,double mCR,double mF)
 {
   const double tCR = gen_CR(mCR);
   const double tF  = gen_F(mF);
-  const int R = rand.ru_int(0,ndim-1);
+  const std::int32_t R = rand.ru_int(0,ndim-1);
 
-  auto gp = [&](int i) -> auto& {return pop[i].second;};
+  auto gp = [&](std::int32_t i) -> auto& {return pop[i].second;};
 
   // select k distinct elements from pop depending on mut_method
   auto v = select_k_unique_except(pop.size(),iagent,MutVals[cfg.mut_method]);
@@ -48,16 +48,16 @@ auto OptDE::generate_candidate(const opt_points &pop,const vec1D &xbest,int iage
     xm = mut_curbest(xbest,gp(iagent),gp(v[0]),gp(v[1]),tF);
   } else if (cfg.mut_method==CURPBEST) {
     // pop.size() can by smaller than cfg.NP
-    int np = std::min(cfg.npbest,static_cast<int>(pop.size())-1);
+    std::int32_t np = std::min(cfg.npbest,static_cast<std::int32_t>(pop.size())-1);
     // np=0 reduces to CUR1BEST as gp(0)=xbest with sorted pop
-    int xp = np>0?rand.ru_int(0,np):0;
+    std::int32_t xp = np>0?rand.ru_int(0,np):0;
     xm = mut_curbest(gp(xp),gp(iagent),gp(v[0]),gp(v[1]),tF);
   }
 
   // cross-over
   vec1D xtrial(ndim);
   const ppoint &xi=pop[iagent];
-  for (int i=0;i<ndim;i++)
+  for (std::int32_t i=0;i<ndim;i++)
   {
     if (rand.event(tCR) || (i==R)) xtrial[i] = xm[i];
     else xtrial[i] = xi.second[i];
@@ -120,13 +120,13 @@ OptDE::ppoint OptDE::run(opt_func func,const vec1D &xstart)
     }
 
     // ensure we don't use more than nfunc_max evals
-    const int num_agents = std::min(cfg.nfunc_max-nfunc,pop.size());
+    const std::int32_t num_agents = std::min(cfg.nfunc_max-nfunc,pop.size());
 
     // trial agents
     gen_mut.resize(num_agents);
     gen_pop.resize(num_agents);
 
-    for (int iagent=0;iagent<num_agents;iagent++)
+    for (std::int32_t iagent=0;iagent<num_agents;iagent++)
     {
       auto [xtrial, tCR, tF] = generate_candidate(pop,xb.second,iagent,mCR,mF);
       gen_mut[iagent]={tCR,tF}; // save (random) mutation params
@@ -139,7 +139,7 @@ OptDE::ppoint OptDE::run(opt_func func,const vec1D &xstart)
     // greedy selection
     std::vector<double>CR_succ;
     std::vector<double>F_succ;
-    for (int iagent=0;iagent<num_agents;iagent++)
+    for (std::int32_t iagent=0;iagent<num_agents;iagent++)
       if (gen_pop[iagent].first < pop[iagent].first)
       {
         pop[iagent] = gen_pop[iagent]; // replace
@@ -165,7 +165,7 @@ OptDE::ppoint OptDE::run(opt_func func,const vec1D &xstart)
 vec1D OptDE::mut_1bin(const vec1D &xb,const vec1D &x1,const vec1D &x2,double F)
 {
   vec1D xm(ndim);
-  for (int i=0;i<ndim;i++) {
+  for (std::int32_t i=0;i<ndim;i++) {
     double y=xb[i] + F*(x1[i] - x2[i]);
     xm[i] = reflect(y, pb[i].xmin,pb[i].xmax);
   }
@@ -175,7 +175,7 @@ vec1D OptDE::mut_1bin(const vec1D &xb,const vec1D &x1,const vec1D &x2,double F)
 vec1D OptDE::mut_curbest(const vec1D &xbest,const vec1D &xb,const vec1D &x1,const vec1D &x2,double F)
 {
   vec1D xm(ndim);
-  for (int i=0;i<ndim;i++) {
+  for (std::int32_t i=0;i<ndim;i++) {
     double y=xb[i] + F*(xbest[i] - xb[i]) + F*(x1[i] - x2[i]);
     xm[i] = reflect(y, pb[i].xmin,pb[i].xmax);
   }

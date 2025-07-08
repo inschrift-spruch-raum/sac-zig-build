@@ -6,7 +6,7 @@
 
 namespace Lib {
 
-  enum class Mode : uint8_t {
+  enum class Mode : std::uint8_t {
     ENCODE,
     DECODE,
     LIST,

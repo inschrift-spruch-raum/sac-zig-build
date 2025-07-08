@@ -14,10 +14,10 @@ public:
 
   double Predict() const { return lb; }
 
-  void Update(int32_t val) { lb = val; }
+  void Update(std::int32_t val) { lb = val; }
 
 protected:
-  int32_t lb{0};
+  std::int32_t lb{0};
 };
 
 class SparsePCM {
@@ -26,20 +26,20 @@ class SparsePCM {
 public:
   SparsePCM()= default;
 
-  void Analyse(std::span<const int32_t> &buf) {
-    minval = std::numeric_limits<int32_t>::max();
-    maxval = std::numeric_limits<int32_t>::min();
+  void Analyse(std::span<const std::int32_t> &buf) {
+    minval = std::numeric_limits<std::int32_t>::max();
+    maxval = std::numeric_limits<std::int32_t>::min();
     for(const auto val: buf) {
       minval = std::min(minval, val);
       maxval = std::max(maxval, val);
     }
 
-    const size_t range = maxval - minval + 1;
+    const std::size_t range = maxval - minval + 1;
     used.assign(range, false);
-    int unique_count = 0;
+    std::int32_t unique_count = 0;
 
     for(const auto val: buf) {
-      const size_t idx = val - minval;
+      const std::size_t idx = val - minval;
       if(!used[idx]) {
         used[idx] = true;
         ++unique_count;
@@ -49,15 +49,15 @@ public:
 
     prefix_sum.resize(range + 1);
     prefix_sum[0] = 0;
-    for(size_t i = 0; i < range; ++i) {
-      prefix_sum[i + 1] = prefix_sum[i] + static_cast<int>(used[i]);
+    for(std::size_t i = 0; i < range; ++i) {
+      prefix_sum[i + 1] = prefix_sum[i] + static_cast<std::int32_t>(used[i]);
     }
 
     double sum0 = 0.0;
     double sum1 = 0.0;
     for(const auto val: buf) {
-      const int32_t e0 = val;
-      const int32_t e1 = map_val(e0);
+      const std::int32_t e0 = val;
+      const std::int32_t e1 = map_val(e0);
 
       sum0 += std::pow(std::fabs(e0), cost_pow);
       sum1 += std::pow(std::fabs(e1), cost_pow);
@@ -66,22 +66,22 @@ public:
     fraction_cost = (sum1 > 0) ? (sum0 / sum1) : 0.0;
   }
 
-  int32_t map_val(int32_t val, int32_t p = 0) const {
+  std::int32_t map_val(std::int32_t val, std::int32_t p = 0) const {
     if(val == 0) { return 0;}
 
-    const int sgn = MathUtils::sgn(val);
-    const int32_t pidx=p - minval;
+    const std::int32_t sgn = MathUtils::sgn(val);
+    const std::int32_t pidx=p - minval;
 
-    int start = pidx + static_cast<int>(val > 0) * 1 + static_cast<int>(val < 0) * val;
-    int end = pidx + static_cast<int>(val > 0) * val + static_cast<int>(val < 0) * (-1);
+    std::int32_t start = pidx + static_cast<std::int32_t>(val > 0) * 1 + static_cast<std::int32_t>(val < 0) * val;
+    std::int32_t end = pidx + static_cast<std::int32_t>(val > 0) * val + static_cast<std::int32_t>(val < 0) * (-1);
 
     return sgn * (prefix_sum[end + 1] - prefix_sum[start]);
   }
 
-  int32_t minval{0}, maxval{0};
+  std::int32_t minval{0}, maxval{0};
   double fraction_used{0.}, fraction_cost{0.};
 
 protected:
   std::vector<bool> used;
-  std::vector<int> prefix_sum;
+  std::vector<std::int32_t> prefix_sum;
 };

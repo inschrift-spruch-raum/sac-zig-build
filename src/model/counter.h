@@ -6,11 +6,11 @@
 class Prob16Counter
 {
   public:
-    uint16_t p1;
+    std::uint16_t p1;
     Prob16Counter():p1(PSCALEh){};
   protected:
-    int idiv(int val,int s) {return (val+(1<<(s-1)))>>s;};
-    int idiv_signed(int val,int s){return val<0?-(((-val)+(1<<(s-1)))>>s):(val+(1<<(s-1)))>>s;};
+    std::int32_t idiv(std::int32_t val,std::int32_t s) {return (val+(1<<(s-1)))>>s;};
+    std::int32_t idiv_signed(std::int32_t val,std::int32_t s){return val<0?-(((-val)+(1<<(s-1)))>>s):(val+(1<<(s-1)))>>s;};
 };
 
 // Linear Counter, p=16 bit
@@ -19,20 +19,20 @@ class LinearCounter16 : public Prob16Counter
   public:
     using Prob16Counter::Prob16Counter;
     //p'=(1-w0)*p+w0*((1-w1)*bit+w1*0.5)
-    void update(int bit,const int w0,const int w1)
+    void update(std::int32_t bit,const std::int32_t w0,const std::int32_t w1)
     {
-      auto wh = [](int w) {return ((w * PSCALEh + PSCALEh)>>PBITS);};
-      int h=(w0*wh(w1))>>PBITS;
-      int p=idiv((PSCALE-w0)*p1,PBITS);
+      auto wh = [](std::int32_t w) {return ((w * PSCALEh + PSCALEh)>>PBITS);};
+      std::int32_t h=(w0*wh(w1))>>PBITS;
+      std::int32_t p=idiv((PSCALE-w0)*p1,PBITS);
       p+=bit?w0-h:h;
       p1=std::clamp(p,1,PSCALEm);
     };
     //p'+=L*(bit-p)
-    void update(int bit,int L)
+    void update(std::int32_t bit,std::int32_t L)
     {
-      int err=(bit<<PBITS)-p1;
-      // p1 should be converted to "int" implicit anyway?
-      int px = int(p1) + idiv_signed(L*err,PBITS);
+      std::int32_t err=(bit<<PBITS)-p1;
+      // p1 should be converted to "std::int32_t" implicit anyway?
+      std::int32_t px = std::int32_t(p1) + idiv_signed(L*err,PBITS);
       p1=std::clamp(px,1,PSCALEm);
     }
 };
@@ -41,36 +41,36 @@ static struct tdiv_tbl
 {
   tdiv_tbl()
   {
-    for (int i=0;i<PSCALE;i++)
+    for (std::int32_t i=0;i<PSCALE;i++)
     {
       tbl[i]=PSCALE/(i+3);
     }
   }
-  int& operator[](int i)  {return tbl[i];};
-  int tbl[PSCALE];
+  std::int32_t& operator[](std::int32_t i)  {return tbl[i];};
+  std::int32_t tbl[PSCALE];
 } div_tbl;
 
 class LinearCounterLimit: public Prob16Counter
 {
-  uint16_t counter;
+  std::uint16_t counter;
   public:
     LinearCounterLimit():Prob16Counter(){counter=0;};
-    void update(int bit,int limit)
+    void update(std::int32_t bit,std::int32_t limit)
     {
       if (counter<limit) counter++;
-      int dp;
+      std::int32_t dp;
       if constexpr (0) {
-        dp = ((bit << PBITS) - p1) / int(counter + 3);
+        dp = ((bit << PBITS) - p1) / std::int32_t(counter + 3);
       } else {
         dp = bit ? ((PSCALE - p1) * div_tbl[counter]) >> PBITS : -((p1 * div_tbl[counter]) >> PBITS);
-        //int dp=(((bit<<PBITS)-p1)*div_tbl[counter]+PSCALEh)>>PBITS;
+        //std::int32_t dp=(((bit<<PBITS)-p1)*div_tbl[counter]+PSCALEh)>>PBITS;
       }
       p1=std::clamp(p1+dp,1,PSCALEm);
     };
 };
 
 // Paq8-state table
-static const uint8_t State_table[256][4]={
+static const std::uint8_t State_table[256][4]={
   {  1,  2, 0, 0},{  3,  5, 1, 0},{  4,  6, 0, 1},{  7, 10, 2, 0}, // 0-3
   {  8, 12, 1, 1},{  9, 13, 1, 1},{ 11, 14, 0, 2},{ 15, 19, 3, 0}, // 4-7
   { 16, 23, 2, 1},{ 17, 24, 2, 1},{ 18, 25, 2, 1},{ 20, 27, 1, 2}, // 8-11
@@ -138,10 +138,10 @@ static const uint8_t State_table[256][4]={
 
 class StateProb {
 public:
-  static int GetP1(int state)
+  static std::int32_t GetP1(std::int32_t state)
   {
-    int n0=State_table[state][2];
-    int n1=State_table[state][3];
+    std::int32_t n0=State_table[state][2];
+    std::int32_t n1=State_table[state][3];
     //if (n0==0) n1*=64;
     //if (n1==0) n0*=64;
     return ((n1+1)*PSCALE)/(n0+n1+2);

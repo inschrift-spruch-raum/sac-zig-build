@@ -9,8 +9,8 @@ class OptCMA : public Opt {
   public:
     struct CMACfg
     {
-      int num_threads=1;
-      int nfunc_max=0;
+      std::int32_t num_threads=1;
+      std::int32_t nfunc_max=0;
       double sigma_init=0.;
     };
     struct CMAParams
@@ -19,7 +19,7 @@ class OptCMA : public Opt {
       double cc,ccov,ccovm,pthres;
       double psucc,sigma;
 
-      CMAParams(int n)
+      CMAParams(std::int32_t n)
       {
         d=1.0+n/2.0; // damping parameter
         p_target_succ=2.0/11.0;

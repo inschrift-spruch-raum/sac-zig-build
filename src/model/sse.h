@@ -8,49 +8,49 @@
  SSE: functions of context history
  maps a probability via (linear-)quantization to a new probability
 */
-template <int NB>
+template <std::int32_t NB>
 class SSE {
-  uint16_t p_quant,px;
+  std::uint16_t p_quant,px;
   public:
     enum {mapsize=1<<NB};
     SSE ()
     {
-      for (int i=0;i<=mapsize;i++) // init prob-map that SSE.p1(p)~p
+      for (std::int32_t i=0;i<=mapsize;i++) // init prob-map that SSE.p1(p)~p
       {
-        int v=((i*PSCALE)>>NB);
+        std::int32_t v=((i*PSCALE)>>NB);
         v = std::clamp(v,1,PSCALEm);
         Map[i].p1=v;
       }
     }
-    int Predict(int p1) // linear interpolate beetween bins
+    std::int32_t Predict(std::int32_t p1) // linear interpolate beetween bins
     {
       p_quant=p1>>(PBITS-NB);
-      int p_mod=p1&(mapsize-1); //int p_mod=p1%map_size;
-      int pl=Map[p_quant].p1;
-      int ph=Map[p_quant+1].p1;
+      std::int32_t p_mod=p1&(mapsize-1); //std::int32_t p_mod=p1%map_size;
+      std::int32_t pl=Map[p_quant].p1;
+      std::int32_t ph=Map[p_quant+1].p1;
       px=pl+((p_mod*(ph-pl))>>NB);
       return px;
     }
-    void Update(int bit,int rate) // update both bins
+    void Update(std::int32_t bit,std::int32_t rate) // update both bins
     {
       Map[p_quant].update(bit,rate);
       Map[p_quant+1].update(bit,rate);
     }
-    /*void update4(int bit,int rate) // update four nearest bins
+    /*void update4(std::int32_t bit,std::int32_t rate) // update four nearest bins
     {
       if (p_quant>0) Map[p_quant-1].update(bit,rate>>1);
       Map[p_quant].update(bit,rate);
       Map[p_quant+1].update(bit,rate);
       if (p_quant<mapsize-1) Map[p_quant+2].update(bit,rate>>1);
     }
-    void update1(int bit,int rate) // update artifical bin
+    void update1(std::int32_t bit,std::int32_t rate) // update artifical bin
     {
       LinearCounter16 tmp;
       tmp.p1=px;
       tmp.update(bit,rate);
-      int pm=tmp.p1-px;
-      int pt1=Map[p_quant].p1+pm;
-      int pt2=Map[p_quant+1].p1+pm;
+      std::int32_t pm=tmp.p1-px;
+      std::int32_t pt1=Map[p_quant].p1+pm;
+      std::int32_t pt2=Map[p_quant+1].p1+pm;
       Map[p_quant].p1=clamp(pt1,1,PSCALEm);
       Map[p_quant+1].p1=clamp(pt2,1,PSCALEm);
     }*/
@@ -65,55 +65,55 @@ class HistProbMapping
   public:
     HistProbMapping()
     {
-      for (int i=0;i<NUMSTATES;i++) Map[i].p1=StateProb::GetP1(i);
+      for (std::int32_t i=0;i<NUMSTATES;i++) Map[i].p1=StateProb::GetP1(i);
     };
-    inline int p1(uint8_t state)
+    inline std::int32_t p1(std::uint8_t state)
     {
        st=state;
        return Map[state].p1;
     }
-    void Update(int bit,int rate)
+    void Update(std::int32_t bit,std::int32_t rate)
     {
        Map[st].update(bit,rate);
     }
   protected:
-    uint8_t st;
+    std::uint8_t st;
     LinearCounterLimit Map[NUMSTATES];
 };
 
-template <int N>
+template <std::int32_t N>
 class SSENL
 {
   //enum {szmap=1<<NB};
   public:
-    int tscale,xscale;
-    uint16_t p_quant;
-    SSENL(int scale=myDomain.max)
+    std::int32_t tscale,xscale;
+    std::uint16_t p_quant;
+    SSENL(std::int32_t scale=myDomain.max)
     :tscale(scale),xscale((2*tscale)/(N-1))
     {
       if (xscale==0) xscale=1;
-      for (int i=0;i<=N;i++)
+      for (std::int32_t i=0;i<=N;i++)
       {
-         int x=myDomain.Inv(i*xscale-tscale);
+         std::int32_t x=myDomain.Inv(i*xscale-tscale);
          Map[0][i].p1=x;
          Map[1][i].p1=x;
       }
       lb=0;
     };
-    int Predict(int p1)
+    std::int32_t Predict(std::int32_t p1)
     {
-       int pq=(std::min)(2*tscale,(std::max)(0,myDomain.Fwd(p1)+tscale));
+       std::int32_t pq=(std::min)(2*tscale,(std::max)(0,myDomain.Fwd(p1)+tscale));
 
        p_quant=pq/xscale;
-       int p_mod=pq-(p_quant*xscale); //%xscale;
+       std::int32_t p_mod=pq-(p_quant*xscale); //%xscale;
 
-       int pl=Map[lb][p_quant].p1;
-       int ph=Map[lb][p_quant+1].p1;
+       std::int32_t pl=Map[lb][p_quant].p1;
+       std::int32_t ph=Map[lb][p_quant+1].p1;
 
-       int px=(pl*(xscale-p_mod)+ph*p_mod)/xscale;
+       std::int32_t px=(pl*(xscale-p_mod)+ph*p_mod)/xscale;
        return std::clamp(px,1,PSCALEm);
     };
-    void Update(int bit,int rate,bool updlb=true)
+    void Update(std::int32_t bit,std::int32_t rate,bool updlb=true)
     {
        Map[lb][p_quant].update(bit,rate);
        Map[lb][p_quant+1].update(bit,rate);
@@ -121,7 +121,7 @@ class SSENL
     };
   protected:
     LinearCounter16 Map[2][N+1];
-    int lb;
+    std::int32_t lb;
 };
 
 #endif

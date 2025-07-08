@@ -8,7 +8,7 @@
 class SSC0
 {
   public:
-    SSC0(int nsucc_max=3,int nfail_max=50)
+    SSC0(std::int32_t nsucc_max=3,std::int32_t nfail_max=50)
     :nsucc_max(nsucc_max),nfail_max(nfail_max)
     {
       nsucc = nfail=0;
@@ -33,7 +33,7 @@ class SSC0
       return std::clamp(sigma,0.05,0.5);
     }
   protected:
-    int nsucc_max,nfail_max,nsucc,nfail;
+    std::int32_t nsucc_max,nfail_max,nsucc,nfail;
 };
 
 // p_target: target succession prob.

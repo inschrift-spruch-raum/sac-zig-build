@@ -110,8 +110,8 @@ std::expected<void, AudioFileErr::Err> Lib::Encode(
   myCodec.EncodeFile(myWav, mySac);
   time.stop();
 
-  uint64_t infilesize = myWav.getFileSize();
-  uint64_t outfilesize = mySac.readFileSize();
+  std::uint64_t infilesize = myWav.getFileSize();
+  std::uint64_t outfilesize = mySac.readFileSize();
   double r = 0.;
   double bps = 0.;
   if(outfilesize != 0U) {
@@ -149,23 +149,23 @@ std::expected<void, AudioFileErr::Err> Lib::Decode(
   std::streampos FileSizeSAC = mySac.getFileSize();
   std::cout << "ok (" << FileSizeSAC << " Bytes)\n";
 
-  std::array<uint8_t, 16> md5digest{};
+  std::array<std::uint8_t, 16> md5digest{};
   mySac.ReadMD5(md5digest.data());
   double bps =
     (static_cast<double>(FileSizeSAC) * 8.0)
     / static_cast<double>(mySac.getNumSamples() * mySac.getNumChannels());
-  int kbps = static_cast<int>(
-    round((mySac.getSampleRate() * mySac.getNumChannels() * bps) / 1000)
+  std::int32_t kbps = static_cast<std::int32_t>(
+    std::round((mySac.getSampleRate() * mySac.getNumChannels() * bps) / 1000)
   );
   mySac.setKBPS(kbps);
   PrintAudioInfo(mySac);
   std::cout << "  Profile: "
             << "mt" << config.mt_mode << " "
-            << static_cast<int>(mySac.mcfg.max_framelen) << "s\n"
+            << static_cast<std::int32_t>(mySac.mcfg.max_framelen) << "s\n"
             << "  Ratio:   " << std::fixed << std::setprecision(3) << bps
             << " bps\n\n"
             << "  Audio MD5: ";
-  for(auto x: md5digest) { std::cout << std::hex << static_cast<int>(x); }
+  for(auto x: md5digest) { std::cout << std::hex << static_cast<std::int32_t>(x); }
   std::cout << std::dec << '\n';
 
   std::cout << "Create: '" << output << "': ";
@@ -199,7 +199,7 @@ std::expected<void, AudioFileErr::Err> Lib::Decode(
   } else {
     std::cout << "Error (";
     for(auto x: myWav.md5ctx.digest) {
-      std::cout << std::hex << static_cast<int>(x);
+      std::cout << std::hex << static_cast<std::int32_t>(x);
     }
     std::cout << std::dec << ")\n";
   }
@@ -220,23 +220,23 @@ Lib::List(const std::string& input, FrameCoder::tsac_cfg& config, bool full) {
   std::streampos FileSizeSAC = mySac.getFileSize();
   std::cout << "ok (" << FileSizeSAC << " Bytes)\n";
 
-  std::array<uint8_t, 16> md5digest{};
+  std::array<std::uint8_t, 16> md5digest{};
   mySac.ReadMD5(md5digest.data());
   double bps =
     (static_cast<double>(FileSizeSAC) * 8.0)
     / static_cast<double>(mySac.getNumSamples() * mySac.getNumChannels());
-  int kbps = static_cast<int>(
-    round((mySac.getSampleRate() * mySac.getNumChannels() * bps) / 1000)
+  std::int32_t kbps = static_cast<std::int32_t>(
+    std::round((mySac.getSampleRate() * mySac.getNumChannels() * bps) / 1000)
   );
   mySac.setKBPS(kbps);
   PrintAudioInfo(mySac);
   std::cout << "  Profile: "
             << "mt" << config.mt_mode << " "
-            << static_cast<int>(mySac.mcfg.max_framelen) << "s\n"
+            << static_cast<std::int32_t>(mySac.mcfg.max_framelen) << "s\n"
             << "  Ratio:   " << std::fixed << std::setprecision(3) << bps
             << " bps\n\n"
             << "  Audio MD5: ";
-  for(auto x: md5digest) { std::cout << std::hex << static_cast<int>(x); }
+  for(auto x: md5digest) { std::cout << std::hex << static_cast<std::int32_t>(x); }
   std::cout << std::dec << '\n';
 
   if(full) {

@@ -7,19 +7,19 @@
 template <typename T>
 class HistBuffer {
   public:
-      HistBuffer(int n)
+      HistBuffer(std::int32_t n)
       :n(n),mask(n-1),pos(0),buf(n)
       {
       }
-      T& operator[](int idx) { return buf[(pos-idx)&mask];};
-      const T operator[](int idx) const { return buf[(pos-idx)&mask];};
+      T& operator[](std::int32_t idx) { return buf[(pos-idx)&mask];};
+      const T operator[](std::int32_t idx) const { return buf[(pos-idx)&mask];};
       void PushBack(T val)
       {
          buf[pos]=val;
          pos=(pos+1)&mask;
       }
   private:
-    int n,mask,pos;
+    std::int32_t n,mask,pos;
     std::vector <T> buf;
 };
 
@@ -28,12 +28,12 @@ class HistBuffer {
 template <typename T>
 class RollBuffer {
   public:
-    explicit RollBuffer(int n)
+    explicit RollBuffer(std::int32_t n)
     :n(n),pos(-1),buf(n)
     {
 
     }
-    const T& operator[](int idx) const
+    const T& operator[](std::int32_t idx) const
     {
       return buf[clamp_idx(pos-idx)];
     };
@@ -42,7 +42,7 @@ class RollBuffer {
       if (++pos>=n) pos=0;
       buf[pos]=val;
     }
-    int clamp_idx(int idx) const
+    std::int32_t clamp_idx(std::int32_t idx) const
     {
       if (idx>=n) idx-=n;
       else if (idx<0) idx+=n;
@@ -50,7 +50,7 @@ class RollBuffer {
     }
     const std::vector<T> &getbuf() {return buf;};
   private:
-    int n,pos;
+    std::int32_t n,pos;
     std::vector <T> buf;
 };
 
@@ -70,7 +70,7 @@ class RollBuffer2 {
       buf[pos+n] = val;
     }
 
-    const T& operator[](int index) const
+    const T& operator[](std::int32_t index) const
     {
       return buf[pos + index];
     }

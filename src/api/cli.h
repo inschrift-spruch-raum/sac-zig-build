@@ -34,8 +34,8 @@ class Shell {
 public:
   Shell() = default;
 
-  int Parse(std::span<const char*> args);
-  int Process();
+  std::int32_t Parse(std::span<const char*> args);
+  std::int32_t Process();
   static void SACInfo();
 
 private:

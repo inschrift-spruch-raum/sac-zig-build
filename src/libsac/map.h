@@ -7,20 +7,20 @@
 #include <vector>
 
 class MapEncoder {
-  const int cnt_upd_rate=500;
-  const int cntsse_upd_rate=300;
-  const int mix_upd_rate=1000;
-  const int mixsse_upd_rate=500;
+  const std::int32_t cnt_upd_rate=500;
+  const std::int32_t cntsse_upd_rate=300;
+  const std::int32_t mix_upd_rate=1000;
+  const std::int32_t mixsse_upd_rate=500;
   public:
     MapEncoder(RangeCoderSH &rc,std::vector <bool>&usedl,std::vector <bool>&usedh);
     void Encode();
     void Decode();
   private:
-    int PredictLow(int i);
-    int PredictHigh(int i);
-    void Update(int bit);
-    int PredictSSE(int p1,int ctx);
-    void UpdateSSE(int bit,int ctx);
+    std::int32_t PredictLow(std::int32_t i);
+    std::int32_t PredictHigh(std::int32_t i);
+    void Update(std::int32_t bit);
+    std::int32_t PredictSSE(std::int32_t p1,std::int32_t ctx);
+    void UpdateSSE(std::int32_t bit,std::int32_t ctx);
     RangeCoderSH &rc;
     LinearCounter16 cnt[24];
     LinearCounter16 cctx[256];
@@ -37,12 +37,12 @@ class Remap {
     Remap();
     void Reset();
     double Compare(const Remap &cmap);
-    void Analyse(std::vector<int32_t> &src,int numsamples);
-    bool isUsed(int val);
-    int32_t Map2(int32_t pred);
-    int32_t Map(int32_t pred,int32_t err);
-    int32_t Unmap(int32_t pred,int32_t merr);
-    int scale,vmin,vmax;
+    void Analyse(std::vector<std::int32_t> &src,std::int32_t numsamples);
+    bool isUsed(std::int32_t val);
+    std::int32_t Map2(std::int32_t pred);
+    std::int32_t Map(std::int32_t pred,std::int32_t err);
+    std::int32_t Unmap(std::int32_t pred,std::int32_t merr);
+    std::int32_t scale,vmin,vmax;
     std::vector <bool>usedl,usedh;
-    std::vector<int32_t> mapl,maph;
+    std::vector<std::int32_t> mapl,maph;
 };

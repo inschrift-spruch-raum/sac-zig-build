@@ -27,8 +27,8 @@ std::expected<void, AudioFileErr::Err>
 AudioFile<AudioFileBase::Mode::Read>::Open(const std::string& fname) {
   file.open(
     fname, static_cast<std::ios_base::openmode>(
-             static_cast<uint8_t>(std::ios_base::in)
-             | static_cast<uint8_t>(std::ios_base::binary)
+             static_cast<std::uint8_t>(std::ios_base::in)
+             | static_cast<std::uint8_t>(std::ios_base::binary)
            )
   );
 
@@ -39,7 +39,7 @@ AudioFile<AudioFileBase::Mode::Read>::Open(const std::string& fname) {
 }
 
 void AudioFile<AudioFileBase::Mode::Read>::Read(
-  std::vector<uint8_t>& data, size_t len
+  std::vector<std::uint8_t>& data, std::size_t len
 ) {
   if(data.size() < len) { data.resize(len); }
   file.read(
@@ -72,8 +72,8 @@ std::expected<void, AudioFileErr::Err>
 AudioFile<AudioFileBase::Mode::Write>::Open(const std::string& fname) {
   file.open(
     fname, static_cast<std::ios_base::openmode>(
-             static_cast<uint8_t>(std::ios_base::out)
-             | static_cast<uint8_t>(std::ios_base::binary)
+             static_cast<std::uint8_t>(std::ios_base::out)
+             | static_cast<std::uint8_t>(std::ios_base::binary)
            )
   );
   if(!file.is_open()) { return std::unexpected(AudioFileErr::Err::OpenFail); }
@@ -82,7 +82,7 @@ AudioFile<AudioFileBase::Mode::Write>::Open(const std::string& fname) {
 }
 
 void AudioFile<AudioFileBase::Mode::Write>::Write(
-  const std::vector<uint8_t>& data, size_t len
+  const std::vector<std::uint8_t>& data, std::size_t len
 ) {
   file.write(
     reinterpret_cast<const char*>(data.data()),

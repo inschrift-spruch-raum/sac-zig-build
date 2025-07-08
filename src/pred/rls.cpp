@@ -2,16 +2,16 @@
 #include "../common/math.h"
 #include "../common/utils.h"
 
-constexpr int RLS_ALC=1;
+constexpr std::int32_t RLS_ALC=1;
 
-RLS::RLS(int n,double gamma,double nu)
+RLS::RLS(std::int32_t n,double gamma,double nu)
 :n(n),
 px(0.),gamma(gamma),
 hist(n),w(n),
 P(n,vec1D(n)), // inverse covariance matrix
 alc(gamma)
 {
-  for (int i=0;i<n;i++)
+  for (std::int32_t i=0;i<n;i++)
     P[i][i]=1.0/nu;
 }
 
@@ -48,15 +48,15 @@ void RLS::Update(double val)
   //P(n)=1/lambda*P(n-1)-1/lambda * k(n)*x^T(n)*P(n-1)
   double denom=1./(alpha+phi);
   double inv_alpha=1.0/(alpha);
-  for (int i=0;i<n;i++)
-    for (int j=0;j<=i;j++) {
+  for (std::int32_t i=0;i<n;i++)
+    for (std::int32_t j=0;j<=i;j++) {
       double m=ph[i]*ph[j]; // outer product of ph
       double v=(P[i][j] - denom * m) * inv_alpha;
       P[i][j] = P[j][i] = v;
     }
 
   // update weights
-  for (int i=0;i<n;i++)
+  for (std::int32_t i=0;i<n;i++)
       w[i]+=err*(denom*ph[i]);
 }
 

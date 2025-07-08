@@ -6,7 +6,7 @@
 class OptDE : public Opt {
   public:
     enum MutMethod {BEST1BIN,RAND1BIN,CUR1BEST,CURPBEST};
-    std::unordered_map<MutMethod, int> MutVals = {
+    std::unordered_map<MutMethod, std::int32_t> MutVals = {
       {BEST1BIN,2},
       {RAND1BIN,3},
       {CUR1BEST,2},
@@ -15,14 +15,14 @@ class OptDE : public Opt {
     enum InitMethod {INIT_UNIV,INIT_NORM};
     struct DECfg
     {
-      int NP=30;
+      std::int32_t NP=30;
       double CR=0.5;
       double F=0.5;
       double c=0.1;
       MutMethod mut_method=CURPBEST;
       InitMethod init_method=INIT_NORM;
       double pbest=0.1;
-      int npbest=std::clamp(static_cast<int>(std::round(pbest*NP))-1,0,NP-1);
+      std::int32_t npbest=std::clamp(static_cast<std::int32_t>(std::round(pbest*NP))-1,0,NP-1);
       double sigma_init=0.15;
       std::size_t num_threads=1;
       std::size_t nfunc_max=0;
@@ -34,9 +34,9 @@ class OptDE : public Opt {
 
 
   protected:
-    auto generate_candidate(const opt_points &pop,const vec1D &xbest,int iagent,double mCR,double mF);
+    auto generate_candidate(const opt_points &pop,const vec1D &xbest,std::int32_t iagent,double mCR,double mF);
     void print_status(std::size_t nfunc,double fx,double mCR,double mF);
-    std::vector<int> select_k_unique_except(int n,int t,int k);
+    std::vector<std::int32_t> select_k_unique_except(std::int32_t n,std::int32_t t,std::int32_t k);
 
     double gen_CR(double mCR)
     {

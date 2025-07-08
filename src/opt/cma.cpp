@@ -25,7 +25,7 @@ auto OptCMA::generate_candidate(const vec1D &x,double sigma)
   vec1D az=slmath::mul(chol.G,z);
 
   vec1D xgen(ndim);
-  for (int i=0;i<ndim;i++)
+  for (std::int32_t i=0;i<ndim;i++)
   {
     if constexpr(1) {
       double scale=(pb[i].xmax-pb[i].xmin)*sigma;
@@ -49,7 +49,7 @@ Opt::ppoint OptCMA::run(opt_func func,const vec1D &xstart)
 {
   vec1D pc(ndim); // evolution path
   vec2D mcov(ndim,vec1D(ndim)); //covariance matrix
-  for (int i=0;i<ndim;i++)
+  for (std::int32_t i=0;i<ndim;i++)
     mcov[i][i]=1.0;
 
 
@@ -57,7 +57,7 @@ Opt::ppoint OptCMA::run(opt_func func,const vec1D &xstart)
   //std::cout << p.p_target_succ << ' '  << p.cp << ' ' << 1.0/p.d << '\n';
   SSC1 ssc(p.p_target_succ,p.cp,1.0/p.d);
 
-  int nfunc=1;
+  std::int32_t nfunc=1;
   ppoint xb{func(xstart),xstart};
   if (verbose) std::cout << xb.first << '\n';
 

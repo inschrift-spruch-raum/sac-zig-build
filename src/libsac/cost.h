@@ -19,8 +19,8 @@ class CostL1 : public CostFunction {
 
       // 使用 std::accumulate 计算绝对值之和
       auto sum = std::accumulate(
-        buf.begin(), buf.end(), int64_t{0}, // 初始化为 int64_t 类型以避免溢出
-        [](int64_t acc, int32_t val) {
+        buf.begin(), buf.end(), std::int64_t{0}, // 初始化为 std::int64_t 类型以避免溢出
+        [](std::int64_t acc, std::int32_t val) {
           return acc + std::abs(val);
         }
       );
@@ -33,7 +33,7 @@ class CostRMS : public CostFunction {
     double Calc(span_ci32 buf) const override
     {
       if (buf.size()) {
-        int64_t sum=0.0;
+        std::int64_t sum=0.0;
         for (const auto val:buf)
           sum+=val*val;
         return sqrt(sum/static_cast<double>(buf.size()));
@@ -51,12 +51,12 @@ class CostGolomb : public CostFunction {
     {
       RunWeight rm(alpha);
       if (buf.size()) {
-        int64_t nbits=0;
+        std::int64_t nbits=0;
         for (const auto sval:buf) {
-          const uint32_t m = std::max(static_cast<int32_t>(rm.sum),1);
+          const std::uint32_t m = std::max(static_cast<std::int32_t>(rm.sum),1);
           const auto uval=MathUtils::S2U(sval);
-          int q=uval/m;
-          //int r=val-q*m;
+          std::int32_t q=uval/m;
+          //std::int32_t r=val-q*m;
           nbits+=(q+1);
           if (m>1) {
             nbits += std::bit_width(m);
@@ -78,15 +78,15 @@ class CostEntropy : public CostFunction {
       double entropy=0.0;
       if (buf.size())
       {
-        int32_t minval = std::numeric_limits<int32_t>::max();
-        int32_t maxval = std::numeric_limits<int32_t>::min();
+        std::int32_t minval = std::numeric_limits<std::int32_t>::max();
+        std::int32_t maxval = std::numeric_limits<std::int32_t>::min();
         for (const auto val:buf) {
           if (val>maxval) maxval=val;
           if (val<minval) minval=val;
         }
-        std::vector<int> counts(maxval-minval+1);
+        std::vector<std::int32_t> counts(maxval-minval+1);
 
-        const auto cmap=[&](int32_t val) -> int& {
+        const auto cmap=[&](std::int32_t val) -> std::int32_t& {
           return counts[val-minval];};
 
         for (const auto val:buf)
@@ -134,11 +134,11 @@ class CostEntropy : public CostFunction {
       ResetCount();
     }
     void ResetCount(){nbits=0;};
-    void EncodeBitOne(uint32_t p1,int bit)
+    void EncodeBitOne(std::uint32_t p1,std::int32_t bit)
     {
       nbits += pr[bit][p1];
     }
-    auto EncodeP1_Func() {return [&](uint32_t p1,int bit) {return EncodeBitOne(p1,bit);};}; // stupid C++
+    auto EncodeP1_Func() {return [&](std::uint32_t p1,std::int32_t bit) {return EncodeBitOne(p1,bit);};}; // stupid C++
 
   double nbits;
   vec2D pr;
@@ -150,11 +150,11 @@ class CostBitplane : public CostFunction {
   }
   double Calc(span_ci32 buf) const override
   {
-    int numsamples=buf.size();
-    std::vector<int32_t> ubuf(numsamples);
-    int vmax = 1;
-    for (int i=0;i<numsamples;i++) {
-       int val=MathUtils::S2U(buf[i]);
+    std::int32_t numsamples=buf.size();
+    std::vector<std::int32_t> ubuf(numsamples);
+    std::int32_t vmax = 1;
+    for (std::int32_t i=0;i<numsamples;i++) {
+       std::int32_t val=MathUtils::S2U(buf[i]);
        if (val>vmax) vmax=val;
        ubuf[i]=val;
     }

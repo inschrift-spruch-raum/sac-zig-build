@@ -37,7 +37,7 @@ class RunWeight {
     double alpha;
 };
 
-template <int tEMA=1,int tbias_corr=0>
+template <std::int32_t tEMA=1,std::int32_t tbias_corr=0>
 class RunSum {
   public:
     RunSum(double alpha)
@@ -185,7 +185,7 @@ namespace MathUtils {
   class InverseSym
   {
     public:
-      InverseSym(int n)
+      InverseSym(std::int32_t n)
       :chol(n),n(n),b(n)
       {
 
@@ -193,7 +193,7 @@ namespace MathUtils {
       void Solve(const vec2D &matrix,vec2D &sol,const double nu=0.0)
       {
         if (!chol.Factor(matrix,nu)) {
-          for (int i=0;i<n;i++) {
+          for (std::int32_t i=0;i<n;i++) {
              std::fill(std::begin(b),std::end(b),0.0);
              b[i]=1.0;
              chol.Solve(b,sol[i]);
@@ -202,30 +202,30 @@ namespace MathUtils {
       }
     protected:
       slmath::Cholesky chol;
-      int n;
+      std::int32_t n;
       vec1D b;
   };
 
   // estimate running covariance of vectors of len n
   class EstCov {
     public:
-      EstCov(int n,double alpha=0.998,double init_val=1.0)
+      EstCov(std::int32_t n,double alpha=0.998,double init_val=1.0)
       :mcov(n,vec1D(n)),
       n(n),alpha(alpha)
       {
-        for (int i=0;i<n;i++)
+        for (std::int32_t i=0;i<n;i++)
           mcov[i][i]=init_val;
       }
       void Update(const vec1D &x)
       {
-        for (int j=0;j<n;j++) {
-          for (int i=0;i<n;i++) {
+        for (std::int32_t j=0;j<n;j++) {
+          for (std::int32_t i=0;i<n;i++) {
             mcov[j][i] = alpha*mcov[j][i] + (1.0-alpha)*x[i]*x[j];
           }
         }
       }
       vec2D mcov;
-      int n;
+      std::int32_t n;
       double alpha;
   };
 
@@ -246,17 +246,17 @@ namespace MathUtils {
          if (v1.size()!=v2.size()) return -1;
          else {
            double sum=0.;
-           for (size_t i=0;i<v1.size();i++) sum+=fabs(v1[i]-v2[i]);
+           for (std::size_t i=0;i<v1.size();i++) sum+=fabs(v1[i]-v2[i]);
            return sum;
          }
       }
-      inline int32_t S2U(int32_t val)
+      inline std::int32_t S2U(std::int32_t val)
       {
         if (val<0) val=2*(-val);
         else if (val>0) val=(2*val)-1;
         return val;
       }
-      inline int32_t U2S(int32_t val)
+      inline std::int32_t U2S(std::int32_t val)
       {
         if (val&1) val=((val+1)>>1);
         else val=-(val>>1);
@@ -267,7 +267,7 @@ namespace MathUtils {
          if (vec1.size()!=vec2.size()) return 0;
          else {
            double sum=0.;
-           for (size_t i=0;i<vec1.size();i++) {double t=vec1[i]-vec2[i];sum+=t*t;};
+           for (std::size_t i=0;i<vec1.size();i++) {double t=vec1[i]-vec2[i];sum+=t*t;};
            return sqrt(sum);
          }
       }
@@ -285,7 +285,7 @@ namespace MathUtils {
         if (vec.size()) {
           double sum0=0.0;
           double sum1=0.0;
-          for (size_t i=0;i<vec.size();++i) {
+          for (std::size_t i=0;i<vec.size();++i) {
             sum0+=(vec[i]*vec[i]);
             sum1+=vec[i];
           }
@@ -294,7 +294,7 @@ namespace MathUtils {
         }
         return 0.;
       }
-      inline double linear_map_n(int n0,int n1,double y0,double y1,int idx)
+      inline double linear_map_n(std::int32_t n0,std::int32_t n1,double y0,double y1,std::int32_t idx)
       {
         double dx = static_cast<double>(n1-n0);
         double dy = y1-y0;
@@ -353,24 +353,24 @@ namespace miscUtils {
       data[0]=input;
     }
   }
-  inline std::string getTimeStrFromSamples(int64_t numsamples,int64_t samplerate)
+  inline std::string getTimeStrFromSamples(std::int64_t numsamples,std::int64_t samplerate)
   {
    std::ostringstream ss;
-   int h,m,s,ms;
+   std::int32_t h,m,s,ms;
    h=m=s=ms=0;
    if (numsamples>0 && samplerate>0) {
      while (numsamples >= 3600*samplerate) {++h;numsamples-=3600*samplerate;};
      while (numsamples >= 60*samplerate) {++m;numsamples-=60*samplerate;};
      while (numsamples >= samplerate) {++s;numsamples-=samplerate;};
-     ms=round((numsamples*1000.)/samplerate);
+     ms=std::round((numsamples*1000.)/samplerate);
    }
    ss << std::setfill('0') << std::setw(2) << h << ":" << std::setw(2) << m << ":" << std::setw(2) << s << "." << ms;
    return ss.str();
  }
- inline std::string getTimeStrFromSeconds(int seconds)
+ inline std::string getTimeStrFromSeconds(std::int32_t seconds)
  {
    std::ostringstream ss;
-   int h,m,s;
+   std::int32_t h,m,s;
    h=m=s=0;
    if (seconds>0) {
       while (seconds >= 3600) {++h;seconds-=3600;};
@@ -380,7 +380,7 @@ namespace miscUtils {
    ss << std::setfill('0') << std::setw(2) << h << ":" << std::setw(2) << m << ":" << std::setw(2) << s;
    return ss.str();
  }
- inline std::string ConvertFixed(double val,int digits)
+ inline std::string ConvertFixed(double val,std::int32_t digits)
  {
    std::ostringstream ss;
    ss << std::fixed << std::setprecision(digits) << val;
@@ -389,10 +389,10 @@ namespace miscUtils {
 };
 
 namespace BitUtils {
-  uint32_t get32HL(const uint8_t *buf);
-  uint32_t get32LH(const uint8_t *buf);
-  uint16_t get16LH(const uint8_t *buf);
-  void put16LH(uint8_t *buf,uint16_t val);
-  void put32LH(uint8_t *buf,uint32_t val);
-  std::string U322Str(uint32_t val);
+  std::uint32_t get32HL(const std::uint8_t *buf);
+  std::uint32_t get32LH(const std::uint8_t *buf);
+  std::uint16_t get16LH(const std::uint8_t *buf);
+  void put16LH(std::uint8_t *buf,std::uint16_t val);
+  void put32LH(std::uint8_t *buf,std::uint32_t val);
+  std::string U322Str(std::uint32_t val);
 }

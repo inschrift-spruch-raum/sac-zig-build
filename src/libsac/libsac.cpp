@@ -13,7 +13,7 @@
 #include "../opt/de.h"
 #include "../opt/cma.h"
 
-FrameCoder::FrameCoder(int numchannels,int framesize,const tsac_cfg &cfg)
+FrameCoder::FrameCoder(std::int32_t numchannels,std::int32_t framesize,const tsac_cfg &cfg)
 :numchannels_(numchannels),framesize_(framesize),cfg(cfg)
 {
   profile_size_bytes_=base_profile.LoadBaseProfile()*4;
@@ -24,7 +24,7 @@ FrameCoder::FrameCoder(int numchannels,int framesize,const tsac_cfg &cfg)
   s2u_error.resize(numchannels);
   s2u_error_map.resize(numchannels);
   pred.resize(numchannels);
-  for (int i=0;i<numchannels;i++) {
+  for (std::int32_t i=0;i<numchannels;i++) {
     samples[i].resize(framesize);
     error[i].resize(framesize);
     pred[i].resize(framesize);
@@ -45,8 +45,8 @@ void FrameCoder::SetParam(Predictor::tparam &param,const SacProfile &profile,boo
   param.lambda0=param.lambda1=profile.Get(0);
   param.ols_nu0=param.ols_nu1=profile.Get(1);
 
-  param.vn0={(int)round(profile.Get(28)),(int)round(profile.Get(29)),(int)round(profile.Get(30)),(int)round(profile.Get(37))};
-  param.vn1={(int)round(profile.Get(31)),(int)round(profile.Get(32)),(int)round(profile.Get(33)),(int)round(profile.Get(38))};
+  param.vn0={(std::int32_t)std::round(profile.Get(28)),(std::int32_t)std::round(profile.Get(29)),(std::int32_t)std::round(profile.Get(30)),(std::int32_t)std::round(profile.Get(37))};
+  param.vn1={(std::int32_t)std::round(profile.Get(31)),(std::int32_t)std::round(profile.Get(32)),(std::int32_t)std::round(profile.Get(33)),(std::int32_t)std::round(profile.Get(38))};
 
   param.vmu0={profile.Get(2)/double(param.vn0[0]),profile.Get(3)/double(param.vn0[1]),profile.Get(4)/double(param.vn0[2]),profile.Get(5)/double(param.vn0[3])};
   param.vmudecay0={profile.Get(6),profile.Get(39),profile.Get(46),profile.Get(47)};
@@ -62,11 +62,11 @@ void FrameCoder::SetParam(Predictor::tparam &param,const SacProfile &profile,boo
   param.mu_mix1=profile.Get(22);
   param.mu_mix_beta1=profile.Get(23);
 
-  param.nA=round(profile.Get(24));
-  param.nB=round(profile.Get(25));
-  param.nS0=round(profile.Get(26));
-  param.nS1=round(profile.Get(27));
-  param.nM0=round(profile.Get(9));
+  param.nA=std::round(profile.Get(24));
+  param.nB=std::round(profile.Get(25));
+  param.nS0=std::round(profile.Get(26));
+  param.nS1=std::round(profile.Get(27));
+  param.nM0=std::round(profile.Get(9));
 
   param.beta_sum0=profile.Get(34);
   param.beta_pow0=profile.Get(35);
@@ -91,16 +91,16 @@ void FrameCoder::SetParam(Predictor::tparam &param,const SacProfile &profile,boo
   } //else if (param.nS1==0) param.nS1=1;
 }
 
-void FrameCoder::PredictFrame(const SacProfile &profile,tch_samples &error,int from,int numsamples,bool optimize)
+void FrameCoder::PredictFrame(const SacProfile &profile,tch_samples &error,std::int32_t from,std::int32_t numsamples,bool optimize)
 {
 
   Predictor::tparam param;
   SetParam(param,profile,optimize);
   Predictor pr(param);
 
-  auto eprocess=[&](int ch_p,int ch,int32_t val,int idx) {
+  auto eprocess=[&](std::int32_t ch_p,std::int32_t ch,std::int32_t val,std::int32_t idx) {
       double pd=pr.predict(ch_p);
-      int32_t pi=std::clamp((int32_t)std::round(pd),framestats[ch].minval,framestats[ch].maxval);
+      std::int32_t pi=std::clamp((std::int32_t)std::round(pd),framestats[ch].minval,framestats[ch].maxval);
       if (!optimize) pred[ch][idx]=pi+framestats[ch].mean;
       error[ch][idx]=val-pi; // needed for cost-function within optimize
       pr.update(ch_p,val);
@@ -109,19 +109,19 @@ void FrameCoder::PredictFrame(const SacProfile &profile,tch_samples &error,int f
 
   if (numchannels_==1) {
     const auto *src=&samples[0][from];
-    for (int idx=0;idx<numsamples;idx++)
+    for (std::int32_t idx=0;idx<numsamples;idx++)
     {
       pr.fillbuf_ch0(src,idx,src,idx);
       eprocess(0,0,src[idx],idx);
     }
   } else if (numchannels_==2) {
-    int ch0=param.ch_ref;
-    int ch1=1-ch0;
+    std::int32_t ch0=param.ch_ref;
+    std::int32_t ch1=1-ch0;
 
     const auto *src0=&samples[ch0][from];
     const auto *src1=&samples[ch1][from];
 
-    int idx0=0,idx1=0;
+    std::int32_t idx0=0,idx1=0;
     while (idx0<numsamples || idx1<numsamples)
     {
       if (idx0<numsamples) {
@@ -138,15 +138,15 @@ void FrameCoder::PredictFrame(const SacProfile &profile,tch_samples &error,int f
   }
 }
 
-void FrameCoder::UnpredictFrame(const SacProfile &profile,int numsamples)
+void FrameCoder::UnpredictFrame(const SacProfile &profile,std::int32_t numsamples)
 {
   Predictor::tparam param;
   SetParam(param,profile,false);
   Predictor pr(param);
 
-  auto dprocess=[&](int ch_p,int ch,int32_t *dst,int idx) {
+  auto dprocess=[&](std::int32_t ch_p,std::int32_t ch,std::int32_t *dst,std::int32_t idx) {
     const double pd=pr.predict(ch_p);
-    const int32_t pi=std::clamp((int32_t)round(pd),framestats[ch].minval,framestats[ch].maxval);
+    const std::int32_t pi=std::clamp((std::int32_t)std::round(pd),framestats[ch].minval,framestats[ch].maxval);
 
 
     if (framestats[ch].enc_mapped)
@@ -159,18 +159,18 @@ void FrameCoder::UnpredictFrame(const SacProfile &profile,int numsamples)
 
   if (numchannels_==1) {
     auto *dst=&samples[0][0];
-    for (int idx=0;idx<numsamples;idx++)
+    for (std::int32_t idx=0;idx<numsamples;idx++)
     {
       pr.fillbuf_ch0(dst,idx,dst,idx);
       dprocess(0,0,dst,idx);
     }
   } else if (numchannels_==2) {
-    int ch0=param.ch_ref;
-    int ch1=1-ch0;
+    std::int32_t ch0=param.ch_ref;
+    std::int32_t ch1=1-ch0;
 
     auto *dst0=&samples[ch0][0];
     auto *dst1=&samples[ch1][0];
-    int idx0=0,idx1=0;
+    std::int32_t idx0=0,idx1=0;
     while (idx0<numsamples || idx1<numsamples)
     {
       if (idx0<numsamples) {
@@ -187,26 +187,26 @@ void FrameCoder::UnpredictFrame(const SacProfile &profile,int numsamples)
   }
 
   // add mean
-  for (int ch=0;ch<numchannels_;ch++) {
+  for (std::int32_t ch=0;ch<numchannels_;ch++) {
     if (framestats[ch].mean!=0)
-      for (int i=0;i<numsamples;i++) samples[ch][i]+=framestats[ch].mean;
+      for (std::int32_t i=0;i<numsamples;i++) samples[ch][i]+=framestats[ch].mean;
   }
 }
 
-int FrameCoder::EncodeMonoFrame_Normal(int ch,int numsamples,BufIO &buf)
+std::int32_t FrameCoder::EncodeMonoFrame_Normal(std::int32_t ch,std::int32_t numsamples,BufIO &buf)
 {
   buf.Reset();
   RangeCoderSH rc(buf);
   rc.Init();
 
   BitplaneCoder bc(framestats[ch].maxbpn,numsamples);
-  int32_t *psrc=&(s2u_error[ch][0]);
+  std::int32_t *psrc=&(s2u_error[ch][0]);
   bc.Encode(rc.encode_p1,psrc);
   rc.Stop();
   return buf.GetBufPos();
 }
 
-int FrameCoder::EncodeMonoFrame_Mapped(int ch,int numsamples,BufIO &buf)
+std::int32_t FrameCoder::EncodeMonoFrame_Mapped(std::int32_t ch,std::int32_t numsamples,BufIO &buf)
 {
   buf.Reset();
 
@@ -222,13 +222,13 @@ int FrameCoder::EncodeMonoFrame_Mapped(int ch,int numsamples,BufIO &buf)
   return buf.GetBufPos();
 }
 
-double FrameCoder::CalcRemapError(int ch, int numsamples) {
-    int32_t emax_map = 1;
-    int64_t sum_error = 0, sum_emap = 0;
+double FrameCoder::CalcRemapError(std::int32_t ch, std::int32_t numsamples) {
+    std::int32_t emax_map = 1;
+    std::int64_t sum_error = 0, sum_emap = 0;
 
-    for (int i = 0; i < numsamples; i++) {
-        int32_t map_e = framestats[ch].mymap.Map(pred[ch][i], error[ch][i]);
-        int32_t map_ue = MathUtils::S2U(map_e);
+    for (std::int32_t i = 0; i < numsamples; i++) {
+        std::int32_t map_e = framestats[ch].mymap.Map(pred[ch][i], error[ch][i]);
+        std::int32_t map_ue = MathUtils::S2U(map_e);
         sum_emap += std::abs(map_e);
         s2u_error_map[ch][i] = map_ue;
         
@@ -254,7 +254,7 @@ double FrameCoder::CalcRemapError(int ch, int numsamples) {
     return r;
 }
 
-void FrameCoder::EncodeMonoFrame(int ch,int numsamples)
+void FrameCoder::EncodeMonoFrame(std::int32_t ch,std::int32_t numsamples)
 {
   if (cfg.sparse_pcm==0) {
     EncodeMonoFrame_Normal(ch,numsamples,enc_temp1[ch]);
@@ -262,13 +262,13 @@ void FrameCoder::EncodeMonoFrame(int ch,int numsamples)
     encoded[ch]=enc_temp1[ch];
   } else {
     double r = CalcRemapError(ch,numsamples);
-    int size_normal=EncodeMonoFrame_Normal(ch,numsamples,enc_temp1[ch]);
+    std::int32_t size_normal=EncodeMonoFrame_Normal(ch,numsamples,enc_temp1[ch]);
     framestats[ch].enc_mapped=false;
     encoded[ch]=enc_temp1[ch];
 
     if (r > 1.05)
     {
-      int size_mapped=EncodeMonoFrame_Mapped(ch,numsamples,enc_temp2[ch]);
+      std::int32_t size_mapped=EncodeMonoFrame_Mapped(ch,numsamples,enc_temp2[ch]);
       if (size_mapped<size_normal)
       {
         if (cfg.verbose_level>0) {
@@ -281,9 +281,9 @@ void FrameCoder::EncodeMonoFrame(int ch,int numsamples)
   }
 }
 
-void FrameCoder::DecodeMonoFrame(int ch,int numsamples)
+void FrameCoder::DecodeMonoFrame(std::int32_t ch,std::int32_t numsamples)
 {
-  int32_t *dst=&(error[ch][0]);
+  std::int32_t *dst=&(error[ch][0]);
   BufIO &buf=encoded[ch];
   buf.Reset();
 
@@ -313,11 +313,11 @@ void FrameCoder::PrintProfile(SacProfile &profile)
     std::cout << "lpc nu " << param.ols_nu0 << ' ' << param.ols_nu1 << '\n';
     std::cout << "lpc cov0 " << param.beta_sum0 << ' ' << param.beta_pow0 << ' ' << param.beta_add0 << "\n";
     std::cout << "lms0 ";
-    for (int i=28;i<=30;i++) std::cout << std::round(profile.Get(i)) << ' ';
+    for (std::int32_t i=28;i<=30;i++) std::cout << std::round(profile.Get(i)) << ' ';
     std::cout << std::round(profile.Get(37));
     std::cout << '\n';
     std::cout << "lms1 ";
-    for (int i=31;i<=33;i++) std::cout << std::round(profile.Get(i)) << ' ';
+    for (std::int32_t i=31;i<=33;i++) std::cout << std::round(profile.Get(i)) << ' ';
     std::cout << std::round(profile.Get(38));
     std::cout << '\n';
     std::cout << "mu ";
@@ -343,7 +343,7 @@ void FrameCoder::PrintProfile(SacProfile &profile)
 double FrameCoder::GetCost(const std::shared_ptr<CostFunction> func,const tch_samples &samples,std::size_t samples_to_optimize) const
 {
   // return a span over samples
-  const auto span_ch = [=](int ch){
+  const auto span_ch = [=](std::int32_t ch){
     return std::span{&samples[ch][0],samples_to_optimize};
   };
 
@@ -351,23 +351,23 @@ double FrameCoder::GetCost(const std::shared_ptr<CostFunction> func,const tch_sa
   if (cfg.mt_mode>1 && numchannels_>1) {
 
     std::vector <std::future<double>> threads;
-    for (int ch=0;ch<numchannels_;ch++)
+    for (std::int32_t ch=0;ch<numchannels_;ch++)
         threads.emplace_back(std::async([=]{return func->Calc(span_ch(ch));}));
 
     for (auto &thread : threads)
       cost += thread.get();
 
   } else {
-    for (int ch=0;ch<numchannels_;ch++)
+    for (std::int32_t ch=0;ch<numchannels_;ch++)
       cost += func->Calc(span_ch(ch));
   }
   return cost;
 }
 
-void FrameCoder::Optimize(const FrameCoder::toptim_cfg &ocfg,SacProfile &profile,const std::vector<int>&params_to_optimize)
+void FrameCoder::Optimize(const FrameCoder::toptim_cfg &ocfg,SacProfile &profile,const std::vector<std::int32_t>&params_to_optimize)
 {
-  int samples_to_optimize=std::min(numsamples_,static_cast<int>(std::ceil(framesize_*ocfg.fraction)));
-  const int start_pos=(numsamples_-samples_to_optimize)/2;
+  std::int32_t samples_to_optimize=std::min(numsamples_,static_cast<std::int32_t>(std::ceil(framesize_*ocfg.fraction)));
+  const std::int32_t start_pos=(numsamples_-samples_to_optimize)/2;
 
   std::shared_ptr<CostFunction> CostFunc;
   switch (ocfg.optimize_cost)  {
@@ -379,10 +379,10 @@ void FrameCoder::Optimize(const FrameCoder::toptim_cfg &ocfg,SacProfile &profile
     default:std::cerr << "  error: unknown FramerCoder::CostFunction\n";return;
   }
 
-  const int ndim=params_to_optimize.size();
+  const std::int32_t ndim=params_to_optimize.size();
   vec1D xstart(ndim); // starting vector
   Opt::box_const pb(ndim); // set constraints
-  for (int i=0;i<ndim;i++) {
+  for (std::int32_t i=0;i<ndim;i++) {
     pb[i].xmin=profile.coefs[params_to_optimize[i]].vmin;
     pb[i].xmax=profile.coefs[params_to_optimize[i]].vmax;
     xstart[i]=profile.coefs[params_to_optimize[i]].vdef;
@@ -390,10 +390,10 @@ void FrameCoder::Optimize(const FrameCoder::toptim_cfg &ocfg,SacProfile &profile
 
   auto cost_func=[&](const vec1D &x) {
     // create thread safe copies for error and profile
-    tch_samples tmp_error(numchannels_,std::vector<int32_t>(samples_to_optimize));
+    tch_samples tmp_error(numchannels_,std::vector<std::int32_t>(samples_to_optimize));
     SacProfile tmp_profile=profile;
 
-    for (int i=0;i<ndim;i++) tmp_profile.coefs[params_to_optimize[i]].vdef=x[i];
+    for (std::int32_t i=0;i<ndim;i++) tmp_profile.coefs[params_to_optimize[i]].vdef=x[i];
 
     PredictFrame(tmp_profile,tmp_error,start_pos,samples_to_optimize,true);
     return GetCost(CostFunc,tmp_error,samples_to_optimize);
@@ -419,7 +419,7 @@ void FrameCoder::Optimize(const FrameCoder::toptim_cfg &ocfg,SacProfile &profile
   Opt::ppoint ret = myOpt->run(cost_func,xstart);
 
   // save optimal vector to baseprofile
-  for (int i=0;i<ndim;i++)
+  for (std::int32_t i=0;i<ndim;i++)
     profile.coefs[params_to_optimize[i]].vdef=ret.second[i];
 
   if (cfg.verbose_level>0) {
@@ -427,13 +427,13 @@ void FrameCoder::Optimize(const FrameCoder::toptim_cfg &ocfg,SacProfile &profile
   }
 }
 
-void FrameCoder::CnvError_S2U(const tch_samples &error,int numsamples)
+void FrameCoder::CnvError_S2U(const tch_samples &error,std::int32_t numsamples)
 {
-  for (int ch=0;ch<numchannels_;ch++)
+  for (std::int32_t ch=0;ch<numchannels_;ch++)
   {
-    int32_t emax = 1;
-    for (int i=0;i<numsamples;i++) {
-      const int32_t e_s2u=MathUtils::S2U(error[ch][i]);
+    std::int32_t emax = 1;
+    for (std::int32_t i=0;i<numsamples;i++) {
+      const std::int32_t e_s2u=MathUtils::S2U(error[ch][i]);
       if (e_s2u>emax) emax=e_s2u;
       s2u_error[ch][i]=e_s2u;
     }
@@ -443,7 +443,7 @@ void FrameCoder::CnvError_S2U(const tch_samples &error,int numsamples)
 
 void FrameCoder::Predict()
 {
-  for (int ch=0;ch<numchannels_;ch++)
+  for (std::int32_t ch=0;ch<numchannels_;ch++)
   {
     AnalyseMonoChannel(ch,numsamples_);
     if (cfg.sparse_pcm) {
@@ -453,7 +453,7 @@ void FrameCoder::Predict()
     if (cfg.zero_mean==0) {
       framestats[ch].mean = 0;
     } else if (framestats[ch].mean!=0) {
-      for (int i=0;i<numsamples_;i++) samples[ch][i] -= framestats[ch].mean;
+      for (std::int32_t i=0;i<numsamples_;i++) samples[ch][i] -= framestats[ch].mean;
       framestats[ch].minval -= framestats[ch].mean;
       framestats[ch].maxval -= framestats[ch].mean;
     }
@@ -467,7 +467,7 @@ void FrameCoder::Predict()
       base_profile.LoadBaseProfile();
 
     // optimize all params
-    std::vector<int>lparam_base(base_profile.coefs.size());
+    std::vector<std::int32_t>lparam_base(base_profile.coefs.size());
     std::iota(std::begin(lparam_base),std::end(lparam_base),0);
 
     Optimize(cfg.ocfg,base_profile,lparam_base);
@@ -485,54 +485,54 @@ void FrameCoder::Encode()
 {
   if (cfg.mt_mode && numchannels_>1)  {
     std::vector <std::jthread> threads;
-    for (int ch=0;ch<numchannels_;ch++)
+    for (std::int32_t ch=0;ch<numchannels_;ch++)
       threads.emplace_back(std::jthread(&FrameCoder::EncodeMonoFrame,this,ch,numsamples_));
   } else
-    for (int ch=0;ch<numchannels_;ch++) EncodeMonoFrame(ch,numsamples_);
+    for (std::int32_t ch=0;ch<numchannels_;ch++) EncodeMonoFrame(ch,numsamples_);
 }
 
 void FrameCoder::Decode()
 {
   if (cfg.mt_mode && numchannels_>1) {
     std::vector <std::jthread> threads;
-    for (int ch=0;ch<numchannels_;ch++)
+    for (std::int32_t ch=0;ch<numchannels_;ch++)
       threads.emplace_back(std::jthread(&FrameCoder::DecodeMonoFrame,this,ch,numsamples_));
   } else
-    for (int ch=0;ch<numchannels_;ch++)
+    for (std::int32_t ch=0;ch<numchannels_;ch++)
       DecodeMonoFrame(ch,numsamples_);
 }
 
-void FrameCoder::EncodeProfile(const SacProfile &profile,std::vector <uint8_t>&buf)
+void FrameCoder::EncodeProfile(const SacProfile &profile,std::vector <std::uint8_t>&buf)
 {
   //assert(sizeof(float)==4);
   //std::cout << "number of coefs: " << profile.coefs.size() << " (" << profile_size_bytes_ << ")" << std::endl;
 
-  uint32_t ix;
-  for (int i=0;i<(int)profile.coefs.size();i++) {
+  std::uint32_t ix;
+  for (std::int32_t i=0;i<(std::int32_t)profile.coefs.size();i++) {
      memcpy(&ix,&profile.coefs[i].vdef,4);
-     //ix=*((uint32_t*)&profile.coefs[i].vdef);
+     //ix=*((std::uint32_t*)&profile.coefs[i].vdef);
      BitUtils::put32LH(&buf[4*i],ix);
   }
 }
 
-void FrameCoder::DecodeProfile(SacProfile &profile,const std::vector <uint8_t>&buf)
+void FrameCoder::DecodeProfile(SacProfile &profile,const std::vector <std::uint8_t>&buf)
 {
-  uint32_t ix;
-  for (int i=0;i<(int)profile.coefs.size();i++) {
+  std::uint32_t ix;
+  for (std::int32_t i=0;i<(std::int32_t)profile.coefs.size();i++) {
      ix=BitUtils::get32LH(&buf[4*i]);
      memcpy(&profile.coefs[i].vdef,&ix,4);
      //profile.coefs[i].vdef=*((float*)&ix);
   }
 }
 
-int FrameCoder::WriteBlockHeader(std::fstream &file, const std::vector<SacProfile::FrameStats> &framestats,int ch)
+std::int32_t FrameCoder::WriteBlockHeader(std::fstream &file, const std::vector<SacProfile::FrameStats> &framestats,std::int32_t ch)
 {
-  uint8_t buf[32];
+  std::uint8_t buf[32];
   BitUtils::put32LH(buf,framestats[ch].blocksize);
-  BitUtils::put32LH(buf+4,static_cast<uint32_t>(framestats[ch].mean));
-  BitUtils::put32LH(buf+8,static_cast<uint32_t>(framestats[ch].minval));
-  BitUtils::put32LH(buf+12,static_cast<uint32_t>(framestats[ch].maxval));
-  uint16_t flag=0;
+  BitUtils::put32LH(buf+4,static_cast<std::uint32_t>(framestats[ch].mean));
+  BitUtils::put32LH(buf+8,static_cast<std::uint32_t>(framestats[ch].minval));
+  BitUtils::put32LH(buf+12,static_cast<std::uint32_t>(framestats[ch].maxval));
+  std::uint16_t flag=0;
   if (framestats[ch].enc_mapped) {
     flag|=(1<<9);
     flag|=framestats[ch].maxbpn_map;
@@ -544,16 +544,16 @@ int FrameCoder::WriteBlockHeader(std::fstream &file, const std::vector<SacProfil
   return 18;
 }
 
-int FrameCoder::ReadBlockHeader(std::fstream &file, std::vector<SacProfile::FrameStats> &framestats,int ch)
+std::int32_t FrameCoder::ReadBlockHeader(std::fstream &file, std::vector<SacProfile::FrameStats> &framestats,std::int32_t ch)
 {
-  uint8_t buf[32];
+  std::uint8_t buf[32];
   file.read(reinterpret_cast<char*>(buf),18);
 
   framestats[ch].blocksize=BitUtils::get32LH(buf);
-  framestats[ch].mean=static_cast<int32_t>(BitUtils::get32LH(buf+4));
-  framestats[ch].minval=static_cast<int32_t>(BitUtils::get32LH(buf+8));
-  framestats[ch].maxval=static_cast<int32_t>(BitUtils::get32LH(buf+12));
-  uint16_t flag=BitUtils::get16LH(buf+16);
+  framestats[ch].mean=static_cast<std::int32_t>(BitUtils::get32LH(buf+4));
+  framestats[ch].minval=static_cast<std::int32_t>(BitUtils::get32LH(buf+8));
+  framestats[ch].maxval=static_cast<std::int32_t>(BitUtils::get32LH(buf+12));
+  std::uint16_t flag=BitUtils::get16LH(buf+16);
   if (flag>>9) framestats[ch].enc_mapped=true;
   else framestats[ch].enc_mapped=false;
   framestats[ch].maxbpn=flag&0xff;
@@ -562,13 +562,13 @@ int FrameCoder::ReadBlockHeader(std::fstream &file, std::vector<SacProfile::Fram
 
 void FrameCoder::WriteEncoded(AudioFile<AudioFileBase::Mode::Write> &fout)
 {
-  uint8_t buf[12];
+  std::uint8_t buf[12];
   BitUtils::put32LH(buf,numsamples_);
   fout.file.write(reinterpret_cast<char*>(buf),4);
-  std::vector <uint8_t>profile_buf(profile_size_bytes_);
+  std::vector <std::uint8_t>profile_buf(profile_size_bytes_);
   EncodeProfile(base_profile,profile_buf);
   fout.file.write(reinterpret_cast<char*>(&profile_buf[0]),profile_size_bytes_);
-  for (int ch=0;ch<numchannels_;ch++) {
+  for (std::int32_t ch=0;ch<numchannels_;ch++) {
     framestats[ch].blocksize = encoded[ch].GetBufPos();
     WriteBlockHeader(fout.file, framestats, ch);
     fout.Write(encoded[ch].GetBuf(),framestats[ch].blocksize);
@@ -577,65 +577,65 @@ void FrameCoder::WriteEncoded(AudioFile<AudioFileBase::Mode::Write> &fout)
 
 void FrameCoder::ReadEncoded(AudioFile<AudioFileBase::Mode::Read> &fin)
 {
-  uint8_t buf[8];
+  std::uint8_t buf[8];
   fin.file.read(reinterpret_cast<char*>(buf),4);
   numsamples_=BitUtils::get32LH(buf);
-  std::vector <uint8_t>profile_buf(profile_size_bytes_);
+  std::vector <std::uint8_t>profile_buf(profile_size_bytes_);
   fin.file.read(reinterpret_cast<char*>(&profile_buf[0]),profile_size_bytes_);
   DecodeProfile(base_profile,profile_buf);
 
-  for (int ch=0;ch<numchannels_;ch++) {
+  for (std::int32_t ch=0;ch<numchannels_;ch++) {
     ReadBlockHeader(fin.file, framestats, ch);
     fin.Read(encoded[ch].GetBuf(),framestats[ch].blocksize);
   }
 }
 
-double FrameCoder::AnalyseStereoChannel(int ch0, int ch1, int numsamples)
+double FrameCoder::AnalyseStereoChannel(std::int32_t ch0, std::int32_t ch1, std::int32_t numsamples)
 {
-  int32_t *src0=&(samples[ch0][0]);
-  int32_t *src1=&(samples[ch1][0]);
-  int64_t sum0=0,sum1=0,sum_m=0,sum_s=0;
-  for (int i=0;i<numsamples;i++) {
+  std::int32_t *src0=&(samples[ch0][0]);
+  std::int32_t *src1=&(samples[ch1][0]);
+  std::int64_t sum0=0,sum1=0,sum_m=0,sum_s=0;
+  for (std::int32_t i=0;i<numsamples;i++) {
     sum0+=fabs(src0[i]);
     sum1+=fabs(src1[i]);
-    int32_t m=(src0[i]+src1[i]) / 2;
-    int32_t s=(src0[i]-src1[i]);
+    std::int32_t m=(src0[i]+src1[i]) / 2;
+    std::int32_t s=(src0[i]-src1[i]);
 
     sum_m+=fabs(m);
     sum_s+=fabs(s);
   }
-  int64_t c0 = sum0+sum1;
-  int64_t c1 = sum_m+sum_s;
+  std::int64_t c0 = sum0+sum1;
+  std::int64_t c1 = sum_m+sum_s;
   return double(c0) / double(c1);
 }
 
-void FrameCoder::ApplyMs(int ch0, int ch1, int numsamples)
+void FrameCoder::ApplyMs(std::int32_t ch0, std::int32_t ch1, std::int32_t numsamples)
 {
-  int32_t *src0=&(samples[ch0][0]);
-  int32_t *src1=&(samples[ch1][0]);
-  for (int i=0;i<numsamples;i++) {
-    int32_t m=(src0[i]+src1[i]) / 2;
-    int32_t s=(src0[i]-src1[i]);
+  std::int32_t *src0=&(samples[ch0][0]);
+  std::int32_t *src1=&(samples[ch1][0]);
+  for (std::int32_t i=0;i<numsamples;i++) {
+    std::int32_t m=(src0[i]+src1[i]) / 2;
+    std::int32_t s=(src0[i]-src1[i]);
     src0[i]=m;
     src1[i]=s;
   }
 }
 
-void FrameCoder::AnalyseMonoChannel(int ch, int numsamples)
+void FrameCoder::AnalyseMonoChannel(std::int32_t ch, std::int32_t numsamples)
 {
-  int32_t *src=&(samples[ch][0]);
+  std::int32_t *src=&(samples[ch][0]);
 
   if (numsamples) {
-    int64_t sum=0;
-    for (int i=0;i<numsamples;i++) {
+    std::int64_t sum=0;
+    for (std::int32_t i=0;i<numsamples;i++) {
         sum += src[i];
     }
-    framestats[ch].mean = (int)std::floor(sum / (double)numsamples);
+    framestats[ch].mean = (std::int32_t)std::floor(sum / (double)numsamples);
 
-    int32_t minval = std::numeric_limits<int32_t>::max();
-    int32_t maxval = std::numeric_limits<int32_t>::min();
-    for (int i=0;i<numsamples;i++) {
-      const int32_t val=src[i];
+    std::int32_t minval = std::numeric_limits<std::int32_t>::max();
+    std::int32_t maxval = std::numeric_limits<std::int32_t>::min();
+    for (std::int32_t i=0;i<numsamples;i++) {
+      const std::int32_t val=src[i];
       if (val>maxval) maxval=val;
       if (val<minval) minval=val;
     }
@@ -648,7 +648,7 @@ void FrameCoder::AnalyseMonoChannel(int ch, int numsamples)
   }
 }
 
-void Codec::PrintProgress(int samplesprocessed,int totalsamples)
+void Codec::PrintProgress(std::int32_t samplesprocessed,std::int32_t totalsamples)
 {
   double r=samplesprocessed*100.0/(double)totalsamples;
   std::cout << "  " << samplesprocessed << "/" << totalsamples << ":" << std::setw(6) << miscUtils::ConvertFixed(r,1) << "%\r";
@@ -661,23 +661,23 @@ void Codec::ScanFrames(Sac<AudioFileBase::Mode::Read> &mySac)
 
   SacProfile profile_tmp; //create dummy profile
   profile_tmp.LoadBaseProfile();
-  const int size_profile_bytes=profile_tmp.coefs.size()*4;
+  const std::int32_t size_profile_bytes=profile_tmp.coefs.size()*4;
 
-  int frame_num=1;
-  int coef_hdr_size=0;
-  int block_hdr_size=0;
+  std::int32_t frame_num=1;
+  std::int32_t coef_hdr_size=0;
+  std::int32_t block_hdr_size=0;
   while (mySac.file.tellg()<fsize) {
-    uint8_t buf[12];
+    std::uint8_t buf[12];
     mySac.file.read(reinterpret_cast<char*>(buf),4);
-    int numsamples=BitUtils::get32LH(buf);
+    std::int32_t numsamples=BitUtils::get32LH(buf);
     std::cout << "Frame " << frame_num << ": " << numsamples << " samples "<< std::endl;
 
     mySac.file.seekg(size_profile_bytes,std::ios_base::cur); // skip profile coefs
     coef_hdr_size += size_profile_bytes;
 
 
-    for (int ch=0;ch<mySac.getNumChannels();ch++) {
-      int num_bytes=FrameCoder::ReadBlockHeader(mySac.file, framestats, ch);
+    for (std::int32_t ch=0;ch<mySac.getNumChannels();ch++) {
+      std::int32_t num_bytes=FrameCoder::ReadBlockHeader(mySac.file, framestats, ch);
       block_hdr_size += num_bytes;
       std::cout << "  Channel " << ch << ": " << framestats[ch].blocksize << " bytes\n";
       std::cout << "    Bpn: " << framestats[ch].maxbpn << ", sparse_pcm: " << (framestats[ch].enc_mapped) << std::endl;
@@ -691,7 +691,7 @@ void Codec::ScanFrames(Sac<AudioFileBase::Mode::Read> &mySac)
 }
 
 
-std::pair<double,double> Codec::AnalyseSparse(std::span<const int32_t> buf)
+std::pair<double,double> Codec::AnalyseSparse(std::span<const std::int32_t> buf)
 {
   SparsePCM spcm;
   spcm.Analyse(buf);
@@ -701,7 +701,7 @@ std::pair<double,double> Codec::AnalyseSparse(std::span<const int32_t> buf)
 
 void Codec::PushState(
   std::vector<Codec::tsub_frame>& sub_frames, Codec::tsub_frame& curframe,
-  int min_frame_length, int block_state = -1, int samples_block = 0
+  std::int32_t min_frame_length, std::int32_t block_state = -1, std::int32_t samples_block = 0
 ) {
   if(block_state == curframe.state) {
     curframe.length += samples_block;
@@ -723,19 +723,19 @@ void Codec::PushState(
   }
 }
 
-std::vector<Codec::tsub_frame> Codec::Analyse(const std::vector <std::vector<int32_t>>&samples,int blocksamples,int min_frame_length,int samples_read)
+std::vector<Codec::tsub_frame> Codec::Analyse(const std::vector <std::vector<std::int32_t>>&samples,std::int32_t blocksamples,std::int32_t min_frame_length,std::int32_t samples_read)
 {
   std::vector<Codec::tsub_frame> sub_frames;
 
-  int samples_processed=0;
-  int nblock=0;
+  std::int32_t samples_processed=0;
+  std::int32_t nblock=0;
 
   Codec::tsub_frame curframe;
 
   while (samples_processed < samples_read)
   {
-    int samples_left = samples_read-samples_processed;
-    int samples_block = std::min(blocksamples,samples_left);
+    std::int32_t samples_left = samples_read-samples_processed;
+    std::int32_t samples_block = std::min(blocksamples,samples_left);
     double avg_cost=0,avg_used=0;
     for (unsigned ch=0;ch<samples.size();ch++)
     {
@@ -745,7 +745,7 @@ std::vector<Codec::tsub_frame> Codec::Analyse(const std::vector <std::vector<int
     }
     avg_cost /= (double)samples.size();
     avg_used /= (double)samples.size();
-    int block_state=(avg_cost>1.35); // high threshold
+    std::int32_t block_state=(avg_cost>1.35); // high threshold
     if (opt_.verbose_level>1) {
       std::cout << "  analyse block " << nblock << ' ' << samples_block << " sparse " << block_state << " (" << avg_cost << "," << avg_used << ")\n";
     }
@@ -769,7 +769,7 @@ std::vector<Codec::tsub_frame> Codec::Analyse(const std::vector <std::vector<int
     std::cerr << "  warning: samples_processed != samples_read (" << samples_processed << "," << samples_read << ")\n";
 
   if (opt_.verbose_level>1) std::cout << "sub_frames\n";
-  int64_t nlen=0;
+  std::int64_t nlen=0;
   for (const auto &frame : sub_frames) {
     if (opt_.verbose_level>1) std::cout << "  " << frame.start << ' ' << frame.length << ' ' << frame.state << '\n';
     nlen+=frame.length;
@@ -779,11 +779,11 @@ std::vector<Codec::tsub_frame> Codec::Analyse(const std::vector <std::vector<int
   return sub_frames;
 }
 
-int Codec::EncodeFile(Wav<AudioFileBase::Mode::Read> &myWav,Sac<AudioFileBase::Mode::Write> &mySac)
+std::int32_t Codec::EncodeFile(Wav<AudioFileBase::Mode::Read> &myWav,Sac<AudioFileBase::Mode::Write> &mySac)
 {
-  uint32_t max_framesize=static_cast<uint32_t>(opt_.max_framelen)*myWav.getSampleRate();
+  std::uint32_t max_framesize=static_cast<std::uint32_t>(opt_.max_framelen)*myWav.getSampleRate();
 
-  const int numchannels=myWav.getNumChannels();
+  const std::int32_t numchannels=myWav.getNumChannels();
 
   FrameCoder myFrame(numchannels,max_framesize,opt_);
 
@@ -798,17 +798,17 @@ int Codec::EncodeFile(Wav<AudioFileBase::Mode::Read> &myWav,Sac<AudioFileBase::M
   double time_prd=0,time_enc=0;
 
   gtimer.start();
-  int samplescoded=0;
-  int samplestocode=myWav.getNumSamples();
-  std::vector<std::vector<int32_t>> csamples(myWav.getNumChannels(),std::vector<int32_t>(max_framesize));
+  std::int32_t samplescoded=0;
+  std::int32_t samplestocode=myWav.getNumSamples();
+  std::vector<std::vector<std::int32_t>> csamples(myWav.getNumChannels(),std::vector<std::int32_t>(max_framesize));
 
   while (samplestocode>0) {
-      int samplesread=myWav.ReadSamples(csamples,max_framesize);
+      std::int32_t samplesread=myWav.ReadSamples(csamples,max_framesize);
 
       std::vector<Codec::tsub_frame> sub_frames;
       if (opt_.adapt_block) {
-        int block_len=myWav.getSampleRate()*3;
-        int min_frame_len=myWav.getSampleRate()*3;
+        std::int32_t block_len=myWav.getSampleRate()*3;
+        std::int32_t min_frame_len=myWav.getSampleRate()*3;
         sub_frames=Analyse(csamples,block_len,min_frame_len,samplesread);
       } else {
         sub_frames.push_back({0,0,samplesread});
@@ -819,7 +819,7 @@ int Codec::EncodeFile(Wav<AudioFileBase::Mode::Read> &myWav,Sac<AudioFileBase::M
         if (opt_.verbose_level)
           std::cout << "frame " << subframe.start << " state " << subframe.state << " len " << subframe.length << '\n';
 
-        for (int ch=0;ch<myWav.getNumChannels();ch++)
+        for (std::int32_t ch=0;ch<myWav.getNumChannels();ch++)
           std::copy_n(&csamples[ch][subframe.start],subframe.length,&myFrame.samples[ch][0]);
 
         myFrame.SetNumSamples(subframe.length);
@@ -844,7 +844,7 @@ int Codec::EncodeFile(Wav<AudioFileBase::Mode::Read> &myWav,Sac<AudioFileBase::M
      std::cout << "misc " << miscUtils::ConvertFixed(100.-rprd-renc,2) << "%" << std::endl;
   }
   std::cout << "  MD5:     ";
-  for (auto x : myWav.md5ctx.digest) std::cout << std::hex << (int)x;
+  for (auto x : myWav.md5ctx.digest) std::cout << std::hex << (std::int32_t)x;
   std::cout << std::dec << '\n';
 
   std::streampos eofpos = mySac.file.tellg();
@@ -864,9 +864,9 @@ void Codec::DecodeFile(Sac<AudioFileBase::Mode::Read> &mySac,Wav<AudioFileBase::
   opt_.max_framelen=file_cfg.max_framelen;
   FrameCoder myFrame(mySac.getNumChannels(),file_cfg.max_framesize,opt_);
 
-  int64_t data_nbytes=0;
-  int samplestodecode=mySac.getNumSamples();
-  int samplesdecoded=0;
+  std::int64_t data_nbytes=0;
+  std::int32_t samplestodecode=mySac.getNumSamples();
+  std::int32_t samplesdecoded=0;
   while (samplestodecode>0) {
     myFrame.ReadEncoded(mySac);
     myFrame.Decode();
@@ -878,6 +878,6 @@ void Codec::DecodeFile(Sac<AudioFileBase::Mode::Read> &mySac,Wav<AudioFileBase::
     samplestodecode-=myFrame.GetNumSamples();
   }
   // pad odd sized data chunk
-  if (data_nbytes&1) myWav.Write(std::vector<uint8_t>{0},1);
+  if (data_nbytes&1) myWav.Write(std::vector<std::uint8_t>{0},1);
   myWav.WriteHeader();
 }

@@ -95,14 +95,14 @@ std::size_t Opt::eval_pop_pool(opt_func func,std::span<ppoint> pop,std::size_t n
 
 vec1D Opt::scale(const vec1D &x) {
   vec1D v_out(x.size());
-  for (size_t i=0;i<x.size();i++)
+  for (std::size_t i=0;i<x.size();i++)
     v_out[i] = (x[i]-pb[i].xmin) / (pb[i].xmax-pb[i].xmin);
   return v_out;
 }
 vec1D Opt::unscale(const vec1D &x)
 {
   vec1D v_out(x.size());
-  for (size_t i=0;i<x.size();i++)
+  for (std::size_t i=0;i<x.size();i++)
     v_out[i] = (x[i] * (pb[i].xmax-pb[i].xmin)) + pb[i].xmin;
   return v_out;
 }
@@ -122,18 +122,18 @@ double Opt::unscale(double r,const tboxconst &box)
 vec1D Opt::gen_norm_samples(const vec1D &xb,double radius)
 {
   assert(pb.size()==xb.size());
-  const int n=pb.size();
+  const std::int32_t n=pb.size();
   vec1D v_out(n);
-  for (int i=0;i<n;i++)
+  for (std::int32_t i=0;i<n;i++)
     v_out[i] = gen_norm(xb[i],pb[i],radius);
   return v_out;
 }
 vec1D Opt::gen_uniform_samples(const vec1D &xb, double radius)
 {
   assert(pb.size()==xb.size());
-  const int n=pb.size();
+  const std::int32_t n=pb.size();
   vec1D v_out(n);
-  for (int i=0;i<n;i++) {
+  for (std::int32_t i=0;i<n;i++) {
     double s=radius*(pb[i].xmax-pb[i].xmin);
     double rnd=rand.r_int(-1,+1);
     double xn=xb[i] + rnd*s;
@@ -144,9 +144,9 @@ vec1D Opt::gen_uniform_samples(const vec1D &xb, double radius)
 
 vec1D Opt::gen_uniform_sample()
 {
-  int n=pb.size();
+  std::int32_t n=pb.size();
   vec1D v_out(n);
-  for (int i=0;i<n;i++) {
+  for (std::int32_t i=0;i<n;i++) {
     v_out[i] = unscale(rand.r_01closed(),pb[i]); //sample from [0,1] and scale
   }
   return v_out;

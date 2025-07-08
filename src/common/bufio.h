@@ -7,22 +7,22 @@
 class BufIO {
   public:
       BufIO():buf(1024){Reset();};
-      explicit BufIO(int initsize):buf(initsize){Reset();};
+      explicit BufIO(std::int32_t initsize):buf(initsize){Reset();};
       void Reset(){bufpos=0;};
-      void PutByte(int val)
+      void PutByte(std::int32_t val)
       {
         if (bufpos>=buf.size()) buf.resize(buf.size()*2);
         buf[bufpos++]=val;
       }
-      int GetByte() {
+      std::int32_t GetByte() {
         if (bufpos>=buf.size()) return -1;
         else return buf[bufpos++];
       }
-      size_t GetBufPos(){return bufpos;};
-      std::vector <uint8_t> &GetBuf(){return buf;};
+      std::size_t GetBufPos(){return bufpos;};
+      std::vector <std::uint8_t> &GetBuf(){return buf;};
   private:
-     size_t bufpos;
-     std::vector <uint8_t>buf;
+     std::size_t bufpos;
+     std::vector <std::uint8_t>buf;
 };
 
 #endif

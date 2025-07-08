@@ -19,7 +19,7 @@ class AudioFileErr: std::runtime_error {
       IllegalSac,      
     };
 
-    explicit AudioFileErr(Err err): std::runtime_error(std::to_string(static_cast<int>(err))), err(err){}
+    explicit AudioFileErr(Err err): std::runtime_error(std::to_string(static_cast<std::int32_t>(err))), err(err){}
 
     Err err;
 };
@@ -39,17 +39,17 @@ class AudioFileBase {
     ~AudioFileBase() = default;
     
     std::streampos getFileSize() const {return filesize;};
-    int getNumChannels()const {return numchannels;};
-    int getSampleRate()const {return samplerate;};
-    int getBitsPerSample()const {return bitspersample;};
-    int getKBPS()const {return kbps;};
-    void setKBPS(int kbps) {this->kbps=kbps;};
-    int getNumSamples()const {return numsamples;};
+    std::int32_t getNumChannels()const {return numchannels;};
+    std::int32_t getSampleRate()const {return samplerate;};
+    std::int32_t getBitsPerSample()const {return bitspersample;};
+    std::int32_t getKBPS()const {return kbps;};
+    void setKBPS(std::int32_t kbps) {this->kbps=kbps;};
+    std::int32_t getNumSamples()const {return numsamples;};
     std::streampos readFileSize();
     std::fstream file;
   protected:
     std::streampos filesize;
-    int samplerate,bitspersample,numchannels,numsamples,kbps;
+    std::int32_t samplerate,bitspersample,numchannels,numsamples,kbps;
 };
 
 template <AudioFileBase::Mode> class AudioFile : public AudioFileBase {};
@@ -58,7 +58,7 @@ template <> class AudioFile<AudioFileBase::Mode::Read> : public AudioFileBase {
   public:
   explicit AudioFile(const std::string &fname);
   
-  void Read(std::vector <uint8_t>&data,size_t len);
+  void Read(std::vector <std::uint8_t>&data,std::size_t len);
   private:
   std::expected<void, AudioFileErr::Err> Open(const std::string &fname);
 
@@ -68,7 +68,7 @@ template <> class AudioFile<AudioFileBase::Mode::Write> : public AudioFileBase {
   public:
   AudioFile(const std::string &fname, const AudioFileBase &file);
 
-  void Write(const std::vector <uint8_t>&data,size_t len);
+  void Write(const std::vector <std::uint8_t>&data,std::size_t len);
   private:
   std::expected<void, AudioFileErr::Err> Open(const std::string &fname);
 
