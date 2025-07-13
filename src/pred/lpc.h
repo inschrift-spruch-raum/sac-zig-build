@@ -51,5 +51,5 @@ class OLS {
     std::int32_t n,kmax,km;
     double lambda,nu,pred;
     double beta_pow,beta_add;
-    RunSumGEO_NoBC esum;
+    RunSumGEO esum;
 };
