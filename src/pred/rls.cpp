@@ -36,7 +36,7 @@ void RLS::Update(double val)
   double phi=slmath::dot_scalar(hist,ph);
 
   double alpha=gamma;
-  if constexpr(RLS_ALC) {
+  if constexpr(SACGlobalCfg::RLS_ALC) {
     // Normalized Innovation Squared
     // quantifies how "unexpected" the observation is
     // relative to the models uncertainty phi

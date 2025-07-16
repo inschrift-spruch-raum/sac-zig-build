@@ -27,6 +27,15 @@ constexpr std::string_view SAC_VERSION = "0.7.22";
 
 #define TOSTRING_HELPER(x) #x
 #define TOSTRING(x) TOSTRING_HELPER(x)
+struct SACGlobalCfg {
+  static constexpr bool USE_AVX2=true;
+  static constexpr bool UNROLL_AVX2=true;
+  static constexpr double NLMS_POW_EPS=1.0;
+  static constexpr double LMS_ADA_EPS=1E-5;
+  static constexpr bool LMS_MIX_INIT=true;// increase stability
+  static constexpr bool LMS_MIX_CLAMPW=true;
+  static constexpr bool RLS_ALC=true; //adaptive lambda control
+};
 
 #ifdef __clang__
 constexpr std::string_view COMPILER = "Clang " TOSTRING(__clang_major__

@@ -57,7 +57,6 @@ void update_w_avx(double* w, const double* mutab, const double* x, double wgrad,
 
 class NLMS_Stream : public LS_Stream
 {
-  const double eps_pow=1.0;
   public:
     NLMS_Stream(std::int32_t n,double mu,double mu_decay=1.0,double pow_decay=0.8)
     :LS_Stream(n),mutab(n),powtab(n),mu(mu)
@@ -72,7 +71,7 @@ class NLMS_Stream : public LS_Stream
 
     void Update(double val) override {
       const double spow=slmath::calc_spow(span_cf64(x.data(), n), span_cf64(powtab.data(),n));
-      const double wgrad=mu*(val-pred)*sum_powtab/(eps_pow+spow);
+      const double wgrad=mu*(val-pred)*sum_powtab/(spow + SACGlobalCfg::NLMS_POW_EPS);
       for (std::int32_t i=0;i<n;i++) {
         w[i]+=mutab[i]*(wgrad*x[i]);
       }
@@ -99,7 +98,7 @@ class LADADA_Stream : public LS_Stream
       for (std::int32_t i=0;i<n;i++) {
         double const grad=serr*x[i];
         eg[i]=beta*eg[i]+(1.0-beta)*grad*grad; //accumulate gradients
-        double g=grad*1.0/(sqrt(eg[i])+1E-5);// update weights
+        double g=grad*1.0/(sqrt(eg[i])+SACGlobalCfg::LMS_ADA_EPS);// update weights
         w[i]+=mu*g;
       }
       x.push(val);
@@ -123,7 +122,7 @@ class LMSADA_Stream : public LS_Stream
       for (std::int32_t i=0;i<n;i++) {
         double const grad=err*x[i]-nu*MathUtils::sgn(w[i]);
         eg[i]=beta*eg[i]+(1.0-beta)*grad*grad; //accumulate gradients
-        double g=grad*1.0/(sqrt(eg[i])+1E-5);// update weights
+        double g=grad*1.0/(sqrt(eg[i])+SACGlobalCfg::LMS_ADA_EPS);// update weights
         w[i]+=mu*g;
       }
       x.push(val);
@@ -167,7 +166,7 @@ class LMS_ADA : public LMS
         double const grad=err*x[i] - nu*MathUtils::sgn(w[i]); // gradient + l1-regularization
 
         eg[i]=beta*eg[i]+(1.0-beta)*grad*grad; //accumulate gradients
-        double g=grad*1.0/(sqrt(eg[i])+1E-5);// update weights
+        double g=grad*1.0/(sqrt(eg[i])+SACGlobalCfg::LMS_ADA_EPS);// update weights
         w[i]+=mu*g;
       }
     }
@@ -189,7 +188,7 @@ class LAD_ADA : public LMS
       for (std::int32_t i=0;i<n;i++) {
         double const grad=serr*x[i];
         eg[i]=beta*eg[i]+(1.0-beta)*grad*grad; //accumulate gradients
-        double scaled_grad=grad*1.0/(sqrt(eg[i])+1E-5);// update weights
+        double scaled_grad=grad*1.0/(sqrt(eg[i])+SACGlobalCfg::LMS_ADA_EPS);// update weights
         w[i]+=mu*scaled_grad;
       }
     }
@@ -227,7 +226,7 @@ class HBR_ADA : public LMS
       for (std::int32_t i=0;i<n;i++) {
         double const grad=grad_loss*x[i];
         eg[i]=beta*eg[i]+(1.0-beta)*grad*grad; //accumulate gradients
-        const double g=grad*1.0/(sqrt(eg[i])+1E-5);// update weights
+        const double g=grad*1.0/(sqrt(eg[i])+SACGlobalCfg::LMS_ADA_EPS);// update weights
         w[i]+=mu*g;
       }
 
@@ -267,7 +266,7 @@ class LMS_ADAM : public LMS
         double n_hat=beta2*S[i]/(1.0-power_beta2);*/
         double m_hat=M[i]/(1.0-power_beta1);
         double n_hat=S[i]/(1.0-power_beta2);
-        w[i]+=mu*m_hat/(sqrt(n_hat)+1E-5);
+        w[i]+=mu*m_hat/(sqrt(n_hat)+SACGlobalCfg::LMS_ADA_EPS);
       }
     }
   private:
