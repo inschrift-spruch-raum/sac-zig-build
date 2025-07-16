@@ -26,35 +26,6 @@ class LS_Stream {
     double pred;
 };
 
-/*
-powtab[0] = 1.0;
-double r = pow(n, -pow_decay / double(n-1));
-for (std::int32_t i = 1; i < n; i++) {
-    powtab[i] = powtab[i-1] * r;
-}
-
-void update_w_avx(double* w, const double* mutab, const double* x, double wgrad, std::int32_t n)
-{
-    __m256d wgrad_vec = _mm256_set1_pd(wgrad);
-    std::int32_t i = 0;
-
-
-    for (; i <= n - 4; i += 4) {
-        __m256d w_vec = _mm256_loadu_pd(&w[i]);
-        __m256d mutab_vec = _mm256_loadu_pd(&mutab[i]);
-        __m256d x_vec = _mm256_loadu_pd(&x[i]);
-
-        __m256d wx = _mm256_mul_pd(wgrad_vec, x_vec);
-        __m256d result = _mm256_fmadd_pd(mutab_vec, wx, w_vec);
-        _mm256_storeu_pd(&w[i], result);
-    }
-
-    for (; i < n; ++i) {
-        w[i] += mutab[i] * (wgrad * x[i]);
-    }
-}*/
-
-
 class NLMS_Stream : public LS_Stream
 {
   public:
@@ -70,7 +41,7 @@ class NLMS_Stream : public LS_Stream
     }
 
     void Update(double val) override {
-      const double spow=slmath::calc_spow(span_cf64(x.data(), n), span_cf64(powtab.data(),n));
+      const double spow=slmath::calc_spow(x.get_span(), powtab);
       const double wgrad=mu*(val-pred)*sum_powtab/(spow + SACGlobalCfg::NLMS_POW_EPS);
       for (std::int32_t i=0;i<n;i++) {
         w[i]+=mutab[i]*(wgrad*x[i]);
@@ -228,12 +199,6 @@ class HBR_ADA : public LMS
         eg[i]=beta*eg[i]+(1.0-beta)*grad*grad; //accumulate gradients
         const double g=grad*1.0/(sqrt(eg[i])+SACGlobalCfg::LMS_ADA_EPS);// update weights
         w[i]+=mu*g;
-      }
-
-      if constexpr(0) {
-        double alpha=0.008;
-        delta += alpha * (std::abs(err_g) - delta);
-        delta = std::clamp(delta,1.0,32.0);
       }
     }
   protected:
