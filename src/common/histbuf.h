@@ -1,58 +1,8 @@
 #pragma once // HISTBUF_H
 
-#include "../global.h"
 #include "alignbuf.h"
-
-// rolling buffer, n must be power of two
-template <typename T>
-class HistBuffer {
-  public:
-      HistBuffer(std::int32_t n)
-      :n(n),mask(n-1),pos(0),buf(n)
-      {
-      }
-      T& operator[](std::int32_t idx) { return buf[(pos-idx)&mask];};
-      const T operator[](std::int32_t idx) const { return buf[(pos-idx)&mask];};
-      void PushBack(T val)
-      {
-         buf[pos]=val;
-         pos=(pos+1)&mask;
-      }
-  private:
-    std::int32_t n,mask,pos;
-    std::vector <T> buf;
-};
-
-// circulating buffer
-// operator [] starts from 0=newest to oldest
-template <typename T>
-class RollBuffer {
-  public:
-    explicit RollBuffer(std::int32_t n)
-    :n(n),pos(-1),buf(n)
-    {
-
-    }
-    const T& operator[](std::int32_t idx) const
-    {
-      return buf[clamp_idx(pos-idx)];
-    };
-    void push(T val)
-    {
-      if (++pos>=n) pos=0;
-      buf[pos]=val;
-    }
-    std::int32_t clamp_idx(std::int32_t idx) const
-    {
-      if (idx>=n) idx-=n;
-      else if (idx<0) idx+=n;
-      return idx;
-    }
-    const std::vector<T> &getbuf() {return buf;};
-  private:
-    std::int32_t n,pos;
-    std::vector <T> buf;
-};
+#include <span>
+#include <vector>
 
 //circulating buffer, bi-partit
 //operator [] starts from 0=newest to oldest
@@ -60,7 +10,7 @@ template <typename T>
 class RollBuffer2 {
   public:
     explicit RollBuffer2(std::size_t capacity)
-    :n(capacity),pos(0),buf(2*capacity)
+    :n(capacity),buf(2*capacity)
     {
     }
     void push(T val)
@@ -75,13 +25,13 @@ class RollBuffer2 {
       return buf[pos + index];
     }
 
-    const std::span<const T> get_span() const {
+     std::span<const T> get_span() const {
       return std::span<const T>{buf.data() + pos,n};
     }
     const T* data() const {
       return buf.data() + pos;
     }
   private:
-    std::size_t n,pos;
+    std::size_t n,pos{0};
     std::vector<T, align_alloc<T> > buf;
 };

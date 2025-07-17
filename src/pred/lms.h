@@ -14,7 +14,7 @@ class LS_Stream {
 
     }
     double Predict() {
-      pred = slmath::dot_scalar(span_cf64(x.data(), n),span_cf64(w.data(), n));
+      pred = MathUtils::dot_scalar(span_cf64(x.data(), n),span_cf64(w.data(), n));
       return pred;
     }
     virtual void Update(double val)=0;
@@ -41,7 +41,7 @@ class NLMS_Stream : public LS_Stream
     }
 
     void Update(double val) override {
-      const double spow=slmath::calc_spow(x.get_span(), powtab);
+      const double spow=MathUtils::calc_spow(x.get_span(), powtab);
       const double wgrad=mu*(val-pred)*sum_powtab/(spow + SACGlobalCfg::NLMS_POW_EPS);
       for (std::int32_t i=0;i<n;i++) {
         w[i]+=mutab[i]*(wgrad*x[i]);
@@ -113,7 +113,7 @@ class LMS {
     }
     double Predict(const vec1D &inp) {
       x = inp;
-      pred = slmath::dot_scalar(span_cf64(w.data(), n), span_cf64(x.data(), n));
+      pred = MathUtils::dot_scalar(span_cf64(w.data(), n), span_cf64(x.data(), n));
       return pred;
     }
     virtual void Update(double)=0;

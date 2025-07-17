@@ -23,7 +23,7 @@ auto OptCMA::generate_candidate(const vec1D &x,double sigma)
   for (auto &r:z)
     r = rand.r_norm();
 
-  vec1D az=slmath::mul(chol.G,z);
+  vec1D az=MathUtils::mul(chol.G,z);
 
   vec1D xgen(ndim);
   for (std::int32_t i=0;i<ndim;i++)
@@ -42,8 +42,8 @@ auto OptCMA::generate_candidate(const vec1D &x,double sigma)
 
 void OptCMA::update_cov(vec2D &mcov, vec1D &pc,const vec1D &az)
 {
-  pc = slmath::mul_add(1.0-p.cc, pc, std::sqrt(p.cc*(2.0-p.cc)), az);
-  mcov = slmath::mul_add(1.0-p.ccov, mcov, p.ccov, slmath::outer(pc,pc));
+  pc = MathUtils::mul_add(1.0-p.cc, pc, std::sqrt(p.cc*(2.0-p.cc)), az);
+  mcov = MathUtils::mul_add(1.0-p.ccov, mcov, p.ccov, MathUtils::outer(pc,pc));
 }
 
 Opt::ppoint OptCMA::run(opt_func func,const vec1D &xstart)

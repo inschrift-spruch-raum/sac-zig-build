@@ -26,12 +26,12 @@ std::expected<void, AudioFileErr::Err> Sac<AudioFileBase::Mode::Read>::ReadHeade
     return std::unexpected(AudioFileErr::Err::IllegalSac);
   }
 
-  numchannels=BitUtils::get16LH(&buf[4]);
-  samplerate=static_cast<std::int32_t>(BitUtils::get32LH(&buf[6]));
-  bitspersample=BitUtils::get16LH(&buf[10]);
-  numsamples=static_cast<std::int32_t>(BitUtils::get32LH(&buf[12]));
+  numchannels=BitUtils::get16LH(std::span<std::uint8_t, 2>(&buf[4], 2));
+  samplerate=static_cast<std::int32_t>(BitUtils::get32LH(std::span<std::uint8_t, 4>(&buf[6],4)));
+  bitspersample=BitUtils::get16LH(std::span<std::uint8_t, 2>(&buf[10], 2));
+  numsamples=static_cast<std::int32_t>(BitUtils::get32LH(std::span<std::uint8_t, 4>(&buf[12], 4)));
   mcfg.max_framelen=buf[16];
-  mcfg.metadatasize=BitUtils::get32LH(&buf[18]);
+  mcfg.metadatasize=BitUtils::get32LH(std::span<std::uint8_t, 4>(&buf[18], 4));
   Read(metadata,mcfg.metadatasize);
   mcfg.max_framesize=samplerate*static_cast<std::uint32_t>(mcfg.max_framelen);
   return {};
@@ -55,16 +55,16 @@ void Sac<AudioFileBase::Mode::Write>::WriteHeader(Wav<AudioFileBase::Mode::Read>
   buf[1]='A';
   buf[2]='C';
   buf[3]='2';
-  BitUtils::put16LH(&buf[4],numchannels);
-  BitUtils::put32LH(&buf[6],samplerate);
-  BitUtils::put16LH(&buf[10],bitspersample);
-  BitUtils::put32LH(&buf[12],numsamples);
+  BitUtils::put16LH(std::span<std::uint8_t, 2>(&buf[4], 2),numchannels);
+  BitUtils::put32LH(std::span<std::uint8_t, 4>(&buf[6], 4),samplerate);
+  BitUtils::put16LH(std::span<std::uint8_t, 2>(&buf[10], 2),bitspersample);
+  BitUtils::put32LH(std::span<std::uint8_t, 4>(&buf[12], 4),numsamples);
   buf[16] = mcfg.max_framelen;
   buf[17] = 0;
 
   // write wav meta data
   const std::uint32_t metadatasize=myChunks.GetMetaDataSize();
-  BitUtils::put32LH(&buf[18],metadatasize);
+  BitUtils::put32LH(std::span<std::uint8_t, 4>(&buf[18], 4),metadatasize);
   file.write(reinterpret_cast<char*>(buf.data()),22);
   if (myChunks.PackMetaData(metadata)!=metadatasize) { std::cerr << "  warning: metadatasize mismatch\n";}
   Write(metadata,metadatasize);

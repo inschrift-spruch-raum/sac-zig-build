@@ -35,7 +35,7 @@ class AudioFileBase {
     AudioFileBase(const AudioFileBase &file);
     AudioFileBase(AudioFileBase &&file) noexcept = default;
     AudioFileBase& operator=(const AudioFileBase& file) = delete;
-    AudioFileBase& operator=(AudioFileBase&& file)  noexcept = default;
+    AudioFileBase& operator=(AudioFileBase&& file) noexcept = default;
     ~AudioFileBase() = default;
     
     std::streampos getFileSize() const {return filesize;};

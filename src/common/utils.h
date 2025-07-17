@@ -171,144 +171,6 @@ namespace StrUtils {
       }
 };
 
-namespace MathUtils {
-  inline double calc_loglik_L1(double abs_e,double b)
-  {
-    return -std::log(2*b) - abs_e / b;
-  }
-  inline double calc_loglik_L2(double sq_e,double sigma2)
-  {
-    return -0.5*std::log(2*M_PI*sigma2) - 0.5 * sq_e / sigma2;
-  }
-
-  // inverse of pos. def. symmetric matrix
-  class InverseSym
-  {
-    public:
-      InverseSym(std::int32_t n)
-      :chol(n),n(n),b(n)
-      {
-
-      }
-      void Solve(const vec2D &matrix,vec2D &sol,const double nu=0.0)
-      {
-        if (!chol.Factor(matrix,nu)) {
-          for (std::int32_t i=0;i<n;i++) {
-             std::fill(std::begin(b),std::end(b),0.0);
-             b[i]=1.0;
-             chol.Solve(b,sol[i]);
-          }
-        };
-      }
-    protected:
-      slmath::Cholesky chol;
-      std::int32_t n;
-      vec1D b;
-  };
-
-  // estimate running covariance of vectors of len n
-  class EstCov {
-    public:
-      EstCov(std::int32_t n,double alpha=0.998,double init_val=1.0)
-      :mcov(n,vec1D(n)),
-      n(n),alpha(alpha)
-      {
-        for (std::int32_t i=0;i<n;i++)
-          mcov[i][i]=init_val;
-      }
-      void Update(const vec1D &x)
-      {
-        for (std::int32_t j=0;j<n;j++) {
-          for (std::int32_t i=0;i<n;i++) {
-            mcov[j][i] = alpha*mcov[j][i] + (1.0-alpha)*x[i]*x[j];
-          }
-        }
-      }
-      vec2D mcov;
-      std::int32_t n;
-      double alpha;
-  };
-
-
-  template <typename T>
-  T med3(T a,T b,T c)
-  {
-    if ((a<b && b<c) || (c<b && b<a)) {
-      return b;
-    } else if ((b < a && a < c) || (c < a && a < b)) {
-      return a;
-    } else
-      return c;
-  }
-  
-  inline double SumDiff(const std::vector<double> &v1,const std::vector<double> &v2)
-  {
-     if (v1.size()!=v2.size()) return -1;
-     else {
-       double sum=0.;
-       for (std::size_t i=0;i<v1.size();i++) sum+=fabs(v1[i]-v2[i]);
-       return sum;
-     }
-  }
-  inline std::int32_t S2U(std::int32_t val)
-  {
-    if (val<0) val=2*(-val);
-    else if (val>0) val=(2*val)-1;
-    return val;
-  }
-  inline std::int32_t U2S(std::int32_t val)
-  {
-    if (val&1) val=((val+1)>>1);
-    else val=-(val>>1);
-    return val;
-  }
-  inline double norm2(const std::vector<double> &vec1,const std::vector<double> &vec2)
-  {
-     if (vec1.size()!=vec2.size()) return 0;
-     else {
-       double sum=0.;
-       for (std::size_t i=0;i<vec1.size();i++) {double t=vec1[i]-vec2[i];sum+=t*t;};
-       return sqrt(sum);
-     }
-  }
-  inline double mean(const std::vector<double> &vec)
-  {
-    if (vec.size()) {
-      double sum=std::accumulate(begin(vec),end(vec),0.0);
-      return sum/static_cast<double>(vec.size());
-    }
-    return 0;
-  }
-  //contraharmonic mean
-  inline double meanL(const std::vector<double> &vec)
-  {
-    if (vec.size()) {
-      double sum0=0.0;
-      double sum1=0.0;
-      for (std::size_t i=0;i<vec.size();++i) {
-        sum0+=(vec[i]*vec[i]);
-        sum1+=vec[i];
-      }
-      if (sum1>0.0) return sum0 / sum1;
-      else return 0.;
-    }
-    return 0.;
-  }
-  inline double linear_map_n(std::int32_t n0,std::int32_t n1,double y0,double y1,std::int32_t idx)
-  {
-    double dx = static_cast<double>(n1-n0);
-    double dy = y1-y0;
-    return idx*(dy/dx)+y0;
-  }
-  template <typename T>
-  T sgn(T x) {
-    return (x > 0) - (x < 0);
-    /*if (x>0) return 1;
-    if (x<0) return -1;
-    return 0;*/
-  }
-};
-
 namespace miscUtils {
 
   enum class MapMode {rec,exp,tanh,power,sigmoid};
@@ -389,10 +251,10 @@ namespace miscUtils {
 };
 
 namespace BitUtils {
-  std::uint32_t get32HL(const std::uint8_t *buf);
-  std::uint32_t get32LH(const std::uint8_t *buf);
-  std::uint16_t get16LH(const std::uint8_t *buf);
-  void put16LH(std::uint8_t *buf,std::uint16_t val);
-  void put32LH(std::uint8_t *buf,std::uint32_t val);
+  std::uint32_t get32HL(std::span<const std::uint8_t, 4> buf);
+  std::uint32_t get32LH(std::span<const std::uint8_t, 4> buf);
+  std::uint16_t get16LH(std::span<const std::uint8_t, 2> buf);
+  void put16LH(std::span<std::uint8_t, 2> buf,std::uint16_t val);
+  void put32LH(std::span<std::uint8_t, 4> buf,std::uint32_t val);
   std::string U322Str(std::uint32_t val);
-}
+} // namespace BitUtils

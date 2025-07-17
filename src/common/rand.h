@@ -1,11 +1,13 @@
 #pragma once
 
+#include <chrono>
 #include <random>
 
 class Random {
   public:
-    Random():engine(time(0)){};
-    Random(std::uint32_t seed):engine(seed){};
+    Random():engine(std::chrono::floor<std::chrono::nanoseconds>(
+                  std::chrono::system_clock::now()).time_since_epoch().count()){};
+    explicit Random(std::uint32_t seed):engine(seed){};
     double r_01() { // [0,1)
       return std::uniform_real_distribution<double>{0,1}(engine);
     };
@@ -37,8 +39,7 @@ class Random {
       return std::poisson_distribution<std::uint32_t>{lambda}(engine);
     }
     bool event(double p) {
-      if (r_01()<p) return true;
-      else return false;
+      return r_01()<p;
     };
   private:
     std::mt19937 engine;

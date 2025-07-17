@@ -154,7 +154,7 @@ std::expected<void, AudioFileErr::Err> Lib::Decode(
   double bps =
     (static_cast<double>(FileSizeSAC) * 8.0)
     / static_cast<double>(mySac.getNumSamples() * mySac.getNumChannels());
-  std::int32_t kbps = static_cast<std::int32_t>(
+  auto kbps = static_cast<std::int32_t>(
     std::round((mySac.getSampleRate() * mySac.getNumChannels() * bps) / 1000)
   );
   mySac.setKBPS(kbps);
@@ -225,7 +225,7 @@ Lib::List(const std::string& input, FrameCoder::tsac_cfg& config, bool full) {
   double bps =
     (static_cast<double>(FileSizeSAC) * 8.0)
     / static_cast<double>(mySac.getNumSamples() * mySac.getNumChannels());
-  std::int32_t kbps = static_cast<std::int32_t>(
+  auto kbps = static_cast<std::int32_t>(
     std::round((mySac.getSampleRate() * mySac.getNumChannels() * bps) / 1000)
   );
   mySac.setKBPS(kbps);
@@ -241,7 +241,7 @@ Lib::List(const std::string& input, FrameCoder::tsac_cfg& config, bool full) {
 
   if(full) {
     Codec myCodec;
-    myCodec.ScanFrames(mySac);
+    Codec::ScanFrames(mySac);
   }
   return {};
 }

@@ -1,6 +1,6 @@
 #pragma once  // TIMER_H
 
-#include "../global.h"
+#include <chrono>
 
 // time measuring via C++ 11 chrono
 class Timer {

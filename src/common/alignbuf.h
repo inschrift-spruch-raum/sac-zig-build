@@ -1,5 +1,7 @@
-#ifndef ALIGNBUF_H
-#define ALIGNBUF_H
+#pragma once
+
+#include <cstddef>
+#include <new>
 
 template <typename T, std::size_t align_t=64>
 struct align_alloc {
@@ -12,10 +14,13 @@ struct align_alloc {
 
     constexpr align_alloc() noexcept = default;
     constexpr align_alloc(const align_alloc &) noexcept = default;
-
+    constexpr align_alloc(align_alloc&&) noexcept = default;
+    align_alloc& operator=(const align_alloc&) noexcept = default;
+    align_alloc& operator=(align_alloc&&) noexcept = default;
+    ~align_alloc() noexcept = default;
 
     template <typename U>
-    constexpr align_alloc(const align_alloc<U, align_t> &) noexcept {}
+    constexpr explicit align_alloc(const align_alloc<U, align_t> & /*unused*/) noexcept {}
 
     T* allocate(std::size_t n) {
         auto ptr = static_cast<T*>(::operator new(n * sizeof(T), std::align_val_t(align_t)));
@@ -28,13 +33,11 @@ struct align_alloc {
 };
 
 template <typename T, typename U, std::size_t align_t>
-bool operator==(const align_alloc<T, align_t>&, const align_alloc<U, align_t>&) noexcept {
+bool operator==(const align_alloc<T, align_t>& /*unused*/, const align_alloc<U, align_t>& /*unused*/) noexcept {
     return true;
 }
 
 template <typename T, typename U, std::size_t align_t>
-bool operator!=(const align_alloc<T, align_t>&, const align_alloc<U, align_t>&) noexcept {
+bool operator!=(const align_alloc<T, align_t>& /*unused*/, const align_alloc<U, align_t>& /*unused*/) noexcept {
     return false;
 }
-
-#endif

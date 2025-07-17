@@ -21,7 +21,7 @@ class OLS {
       }
     }
     double Predict() {
-      pred = slmath::dot_scalar(span_cf64(x.data(), n), span_cf64(w.data(), n));
+      pred = MathUtils::dot_scalar(span_cf64(x.data(), n), span_cf64(w.data(), n));
       return pred;
     }
 
@@ -45,7 +45,7 @@ class OLS {
     }
     vec1D x;
   protected:
-    slmath::Cholesky chol;
+    MathUtils::Cholesky chol;
     vec1D w,b;
     vec2D mcov;
     std::int32_t n,kmax,km;

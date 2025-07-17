@@ -21,7 +21,7 @@ void Chunks::Append(std::uint32_t chunkid,std::uint32_t chunksize,const std::spa
   chunk.csize=chunksize;
   if (data.size() != 0U) {
     chunk.data.resize(data.size());
-    std::copy(data.cbegin(),data.cend(),chunk.data.begin());
+    std::ranges::copy(data,chunk.data.begin());
   }
   wavchunks.push_back(chunk);
   metadatasize+=(8+data.size());
@@ -33,8 +33,8 @@ std::size_t Chunks::PackMetaData(std::vector <std::uint8_t>&data)
   std::size_t ofs=0;
   for (std::size_t i=0;i<GetNumChunks();i++) {
     const tChunk &wavchunk=wavchunks[i];
-    BitUtils::put32LH(&data[ofs],wavchunk.id);ofs+=4;
-    BitUtils::put32LH(&data[ofs],wavchunk.csize);ofs+=4;
+    BitUtils::put32LH(std::span<std::uint8_t, 4>(&data[ofs], 4),wavchunk.id);ofs+=4;
+    BitUtils::put32LH(std::span<std::uint8_t, 4>(&data[ofs], 4), wavchunk.csize);ofs+=4;
     std::copy(begin(wavchunk.data),end(wavchunk.data),begin(data)+static_cast<std::int32_t>(ofs));
     ofs+=wavchunk.data.size();
   }
@@ -45,8 +45,8 @@ std::size_t Chunks::UnpackMetaData(const std::vector <std::uint8_t>&data)
 {
   std::size_t ofs=0;
   while (ofs<data.size()) {
-    std::uint32_t chunkid=BitUtils::get32LH(&data[ofs]);ofs+=4;
-    std::uint32_t chunksize=BitUtils::get32LH(&data[ofs]);ofs+=4;
+    std::uint32_t chunkid=BitUtils::get32LH(std::span<const std::uint8_t, 4>(&data[ofs], 4));ofs+=4;
+    std::uint32_t chunksize=BitUtils::get32LH(std::span<const std::uint8_t, 4>(&data[ofs], 4));ofs+=4;
     if (chunkid==0x46464952) {Append(chunkid,chunksize,std::span<const std::uint8_t>{&data[ofs], 4});ofs+=4;}
     else if (chunkid==0x61746164) {Append(chunkid,chunksize,std::span<const std::uint8_t, 0>{});}
     else {
@@ -85,19 +85,19 @@ std::expected<void, AudioFileErr::Err> Wav<AudioFileBase::Mode::Read>::ReadHeade
   std::uint32_t chunksize = 0;
 
   file.read(reinterpret_cast<char*>(buf.data()),12); // read 'RIFF' chunk descriptor
-  chunkid=BitUtils::get32LH(buf.data());
-  chunksize=BitUtils::get32LH(&buf[4]);
+  chunkid=BitUtils::get32LH(std::span<std::uint8_t, 4>(buf.data(), 4));
+  chunksize=BitUtils::get32LH(std::span<std::uint8_t, 4>(&buf[4],4));
 
   // do we have a wave file?
-  if (chunkid==0x46464952 && BitUtils::get32LH(&buf[8])==0x45564157) {
+  if (chunkid==0x46464952 && BitUtils::get32LH(std::span<std::uint8_t, 4>(&buf[8],4))==0x45564157) {
 
     myChunks.Append(chunkid,chunksize,std::span<const std::uint8_t>{&buf[8], 4});
     while (true) {
       file.read(reinterpret_cast<char*>(buf.data()),8);
       if (!file) {std::cout << "could not read!\n";return std::unexpected(AudioFileErr::Err::ReadFail);};
 
-      chunkid   = BitUtils::get32LH(buf.data());
-      chunksize = BitUtils::get32LH(&buf[4]);
+      chunkid   = BitUtils::get32LH(std::span<std::uint8_t, 4>(buf.data(), 4));
+      chunksize = BitUtils::get32LH(std::span<std::uint8_t, 4>(&buf[4], 4));
       if (chunkid==0x020746d66) { // read 'fmt ' chunk
         if (chunksize!=16 && chunksize!=18 && chunksize!=40)
         {
@@ -106,19 +106,19 @@ std::expected<void, AudioFileErr::Err> Wav<AudioFileBase::Mode::Read>::ReadHeade
         }            file.read(reinterpret_cast<char*>(buf.data()),chunksize);
           myChunks.Append(chunkid,chunksize,std::span<const std::uint8_t>{buf.data(),chunksize});
 
-          std::int32_t audioformat=BitUtils::get16LH(buf.data());
-          numchannels=BitUtils::get16LH(&buf[2]);
-          samplerate=static_cast<std::int32_t>(BitUtils::get32LH(&buf[4]));
-          byterate=static_cast<std::int32_t>(BitUtils::get32LH(&buf[8]));
-          blockalign=BitUtils::get16LH(&buf[12]);
-          bitspersample=BitUtils::get16LH(&buf[14]);
+          std::int32_t audioformat=BitUtils::get16LH(std::span<std::uint8_t, 2>(buf.data(), 2));
+          numchannels=BitUtils::get16LH(std::span<std::uint8_t, 2>(&buf[2], 2));
+          samplerate=static_cast<std::int32_t>(BitUtils::get32LH(std::span<std::uint8_t, 4>(&buf[4], 4)));
+          byterate=static_cast<std::int32_t>(BitUtils::get32LH(std::span<std::uint8_t, 4>(&buf[8], 4)));
+          blockalign=BitUtils::get16LH(std::span<std::uint8_t, 2>(&buf[12], 2));
+          bitspersample=BitUtils::get16LH(std::span<std::uint8_t, 2>(&buf[14], 2));
           if (chunksize>=18) {
-             std::int32_t cbsize=BitUtils::get16LH(&buf[16]);
+             std::int32_t cbsize=BitUtils::get16LH(std::span<std::uint8_t, 2>(&buf[16], 2));
              if (verbose) { std::cout << "  WAVE-Ext (" << cbsize << " Bytes)"<<'\n';}
              if (cbsize>=22) {
-               std::int32_t valid_bitspersample=BitUtils::get16LH(&buf[18]);
-               std::int32_t channel_mask=static_cast<std::int32_t>(BitUtils::get32LH(&buf[20]));
-               std::int32_t data_fmt=BitUtils::get16LH(&buf[24]);
+               std::int32_t valid_bitspersample=BitUtils::get16LH(std::span<std::uint8_t, 2>(&buf[18], 2));
+               auto channel_mask=static_cast<std::int32_t>(BitUtils::get32LH(std::span<std::uint8_t, 4>(&buf[20], 4)));
+               std::int32_t data_fmt=BitUtils::get16LH(std::span<std::uint8_t, 2>(&buf[24], 2));
                if (verbose) {
                  std::cout << "  audio format=" << std::format("{:#x}",audioformat);
                  std::cout << ",channel mask=" << std::format("{:#x}",channel_mask);
@@ -164,10 +164,10 @@ std::expected<void, AudioFileErr::Err> Wav<AudioFileBase::Mode::Read>::ReadHeade
   } else { return std::unexpected(AudioFileErr::Err::IllegalWav);}
 
   if (verbose) {
-    std::cout << " Number of chunks: " << myChunks.GetNumChunks() << '\n';
+    std::cout << "\nNumber of chunks: " << myChunks.GetNumChunks() << '\n';
     for (std::size_t i=0;i<myChunks.GetNumChunks();i++) {
       std::cout << "  Chunk" << std::setw(2) << (i+1) << ": '" << BitUtils::U322Str(myChunks.GetChunkID(static_cast<std::int32_t>(i))) << "' " << myChunks.GetChunkSize(static_cast<std::int32_t>(i)) << " Bytes\n";}
-    std::cout << " Metadatasize: " << myChunks.GetMetaDataSize() << " Bytes\n";
+    std::cout << "  Metadatasize: " << myChunks.GetMetaDataSize() << " Bytes\n";
   }
   if (seektodatapos) {file.seekg(datapos);seektodatapos=false;};
   return {};
@@ -178,14 +178,14 @@ std::int32_t Wav<AudioFileBase::Mode::Read>::ReadSamples(std::vector <std::vecto
   samplestoread = std::min(samplestoread, samplesleft);
   std::int32_t bytestoread=samplestoread*blockalign;
   file.read(reinterpret_cast<char*>(filebuffer.data()),bytestoread);
-  std::int32_t bytesread=static_cast<std::int32_t>(file.gcount());
+  auto bytesread=static_cast<std::int32_t>(file.gcount());
   std::int32_t samplesread=bytesread/blockalign;
 
   samplesleft-=samplesread;
   if (samplesread!=samplestoread) { std::cerr << "warning: read over eof\n";
 }
 
-  MD5::Update(&md5ctx, filebuffer.data(), bytestoread);
+  MD5::Update(&md5ctx, filebuffer, bytestoread);
 
   const std::int32_t csize=blockalign/numchannels;
   // decode samples
@@ -228,7 +228,7 @@ std::int32_t Wav<AudioFileBase::Mode::Read>::ReadSamples(std::vector <std::vecto
 Wav<AudioFileBase::Mode::Write>::Wav(const std::string &fname, AudioFile<AudioFileBase::Mode::Read> &file,bool verbose) try
 :WavBase(verbose), AudioFile(fname, file) {
   kbps=(samplerate*numchannels*bitspersample)/1000;
-  std::int32_t csize=static_cast<std::int32_t>(std::ceil(static_cast<double>(bitspersample)/8.));
+  auto csize=static_cast<std::int32_t>(std::ceil(static_cast<double>(bitspersample)/8.));
   byterate=samplerate*numchannels*csize;
   blockalign=numchannels*csize;
 } catch (AudioFileErr&) {
@@ -240,8 +240,8 @@ void Wav<AudioFileBase::Mode::Write>::WriteHeader() {
   while (chunkpos<myChunks.GetNumChunks())
   {
     const Chunks::tChunk &chunk=myChunks.wavchunks[chunkpos++];
-    BitUtils::put32LH(buf.data(),chunk.id);
-    BitUtils::put32LH(&buf[4],chunk.csize);
+    BitUtils::put32LH(std::span<std::uint8_t, 4>(buf.data(), 4),chunk.id);
+    BitUtils::put32LH(std::span<std::uint8_t, 4>(&buf[4], 4),chunk.csize);
     file.write(reinterpret_cast<char*>(buf.data()),8);
     if (chunk.id==0x61746164) { break;
     }         if (verbose) { std::cout << " chunk size " << chunk.data.size() << '\n';}
@@ -285,7 +285,7 @@ std::int32_t Wav<AudioFileBase::Mode::Write>::WriteSamples(const std::vector <st
   std::int32_t bytestowrite=samplestowrite*blockalign;
   file.write(reinterpret_cast<char*>(filebuffer.data()),bytestowrite);
 
-  MD5::Update(&md5ctx, filebuffer.data(), bytestowrite);
+  MD5::Update(&md5ctx, filebuffer, bytestowrite);
   return bytestowrite;
 }
 

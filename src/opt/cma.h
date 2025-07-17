@@ -41,7 +41,7 @@ class OptCMA : public Opt {
     void update_cov(vec2D &mcov, vec1D &pc,const vec1D &az);
     const CMACfg &cfg;
     CMAParams p;
-    slmath::Cholesky chol;
+    MathUtils::Cholesky chol;
     bool verbose;
 
 };

@@ -3,16 +3,17 @@
 
 #include "../file/wav.h"
 #include "../file/sac.h"
-#include "cost.h"
-#include "profile.h"
+#include "../opt/cma.h"
 #include "../opt/dds.h"
 #include "../opt/de.h"
-#include "../opt/cma.h"
+#include "cost.h"
+#include "profile.h"
+#include <cstdint>
 
 class FrameCoder {
   public:
-    enum SearchCost {L1,RMS,Entropy,Golomb,Bitplane};
-    enum SearchMethod {DDS,DE,CMA};
+    enum class SearchCost: std::uint8_t {L1,RMS,Entropy,Golomb,Bitplane};
+    enum class SearchMethod: std::uint8_t {DDS,DE,CMA};
 
     using tch_samples = std::vector <std::vector<std::int32_t>>;
 
@@ -44,7 +45,7 @@ class FrameCoder {
     };
     FrameCoder(std::int32_t numchannels,std::int32_t framesize,const tsac_cfg &sac_cfg);
     void SetNumSamples(std::int32_t nsamples){numsamples_=nsamples;};
-    std::int32_t GetNumSamples(){return numsamples_;};
+    std::int32_t GetNumSamples() const{return numsamples_;};
     void Predict();
     void Unpredict();
     void Encode();
@@ -59,18 +60,18 @@ class FrameCoder {
     static std::int32_t ReadBlockHeader(std::fstream &file, std::vector<SacProfile::FrameStats> &framestats, std::int32_t ch);
   private:
     void CnvError_S2U(const tch_samples &error,std::int32_t numsamples);
-    void SetParam(Predictor::tparam &param,const SacProfile &profile,bool optimize=false);
+    void SetParam(Predictor::tparam &param,const SacProfile &profile,bool optimize=false) const;
     void PrintProfile(SacProfile &profile);
-    void EncodeProfile(const SacProfile &profile,std::vector <std::uint8_t>&buf);
-    void DecodeProfile(SacProfile &profile,const std::vector <std::uint8_t>&buf);
+    static void EncodeProfile(const SacProfile &profile,std::vector <std::uint8_t>&buf);
+    static void DecodeProfile(SacProfile &profile,const std::vector <std::uint8_t>&buf);
     void AnalyseMonoChannel(std::int32_t ch, std::int32_t numsamples);
     double AnalyseStereoChannel(std::int32_t ch0, std::int32_t ch1, std::int32_t numsamples);
     void ApplyMs(std::int32_t ch0, std::int32_t ch1, std::int32_t numsamples);
     //void InterChannel(std::int32_t ch0,std::int32_t ch1,std::int32_t numsamples);
-    std::int32_t EncodeMonoFrame_Normal(std::int32_t ch,std::int32_t numsamples,BufIO &buf);
-    std::int32_t EncodeMonoFrame_Mapped(std::int32_t ch,std::int32_t numsamples,BufIO &buf);
+    std::size_t EncodeMonoFrame_Normal(std::int32_t ch,std::int32_t numsamples,BufIO &buf);
+    std::size_t EncodeMonoFrame_Mapped(std::int32_t ch,std::int32_t numsamples,BufIO &buf);
     void Optimize(const FrameCoder::toptim_cfg &ocfg,SacProfile &profile,const std::vector<std::int32_t>&params_to_optimize);
-    double GetCost(const std::shared_ptr<CostFunction> func,const tch_samples &samples,std::size_t samples_to_optimize) const;
+    double GetCost(const std::shared_ptr<CostFunction> &func,const tch_samples &samples,std::size_t samples_to_optimize) const;
     void PredictFrame(const SacProfile &profile,tch_samples &error,std::int32_t from,std::int32_t numsamples,bool optimize);
     void UnpredictFrame(const SacProfile &profile,std::int32_t numsamples);
     double CalcRemapError(std::int32_t ch, std::int32_t numsamples);
@@ -83,24 +84,24 @@ class FrameCoder {
 };
 
 class Codec {
-  enum ErrorCode {COULD_NOT_WRITE};
+  enum class ErrorCode: std::uint8_t {COULD_NOT_WRITE};
   struct tsub_frame {
     std::int32_t state=-1;
     std::int32_t start=0;
     std::int32_t length=0;
   };
   public:
-    Codec(){};
-    Codec(FrameCoder::tsac_cfg &cfg):opt_(cfg) {};
+    Codec()= default;
+    explicit Codec(FrameCoder::tsac_cfg &cfg):opt_(cfg) {};
     std::int32_t EncodeFile(Wav<AudioFileBase::Mode::Read> &myWav,Sac<AudioFileBase::Mode::Write> &mySac);
     //void EncodeFile(Wav &myWav,Sac &mySac,std::int32_t profile,std::int32_t optimize,std::int32_t sparse_pcm);
     void DecodeFile(Sac<AudioFileBase::Mode::Read> &mySac,Wav<AudioFileBase::Mode::Write> &myWav);
-    void ScanFrames(Sac<AudioFileBase::Mode::Read> &mySac);
+    static void ScanFrames(Sac<AudioFileBase::Mode::Read> &mySac);
   private:
     std::vector<Codec::tsub_frame> Analyse(const std::vector <std::vector<std::int32_t>>&samples,std::int32_t blocksamples,std::int32_t min_frame_length,std::int32_t samples_read);
-    void PushState(std::vector<Codec::tsub_frame> &sub_frames,Codec::tsub_frame &curframe,std::int32_t min_frame_length,std::int32_t block_state,std::int32_t samples_block);
-    std::pair<double,double> AnalyseSparse(std::span<const std::int32_t> buf);
-    void PrintProgress(std::int32_t samplesprocessed,std::int32_t totalsamples);
+    void PushState(std::vector<Codec::tsub_frame> &sub_frames,Codec::tsub_frame &curframe,std::int32_t min_frame_length,std::int32_t block_state,std::int32_t samples_block) const;
+    static std::pair<double,double> AnalyseSparse(std::span<const std::int32_t> buf);
+    static void PrintProgress(std::int32_t samplesprocessed,std::int32_t totalsamples);
     FrameCoder::tsac_cfg opt_;
     //std::int32_t framesize;
 };

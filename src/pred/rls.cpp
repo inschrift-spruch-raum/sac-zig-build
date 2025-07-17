@@ -17,7 +17,7 @@ alc(gamma)
 
 double RLS::Predict()
 {
-  px=slmath::dot_scalar(hist,w);
+  px=MathUtils::dot_scalar(hist,w);
   return px;
 }
 
@@ -31,9 +31,9 @@ void RLS::Update(double val)
 {
   const double err=val-px;
 
-  vec1D ph=slmath::mul(P,hist); //phi=hist P hist
+  vec1D ph=MathUtils::mul(P,hist); //phi=hist P hist
   // a priori variance of prediction
-  double phi=slmath::dot_scalar(hist,ph);
+  double phi=MathUtils::dot_scalar(hist,ph);
 
   double alpha=gamma;
   if constexpr(SACGlobalCfg::RLS_ALC) {
