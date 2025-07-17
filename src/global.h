@@ -17,19 +17,14 @@ using span_i32 = std::span<std::int32_t>;
 using span_ci32 = std::span<const std::int32_t>;
 using span_cf64 = std::span<const double>;
 
-#ifndef M_PI
-constexpr long double M_PI = 3.14159265358979323846264338327950288;
-#endif
-
 constexpr bool UNROLL_AVX256 = false;
 
 constexpr std::string_view SAC_VERSION = "0.7.22";
 
 #define TOSTRING_HELPER(x) #x
 #define TOSTRING(x) TOSTRING_HELPER(x)
+
 struct SACGlobalCfg {
-  static constexpr bool USE_AVX2=true;
-  static constexpr bool UNROLL_AVX2=true;
   static constexpr double NLMS_POW_EPS=1.0;
   static constexpr double LMS_ADA_EPS=1E-5;
   static constexpr bool LMS_MIX_INIT=true;// increase stability

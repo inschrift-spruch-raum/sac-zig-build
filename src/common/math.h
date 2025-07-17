@@ -3,6 +3,7 @@
 #include "../global.h"
 #include <cassert>
 #include <numeric>
+#include <numbers>
 
 namespace MathUtils
 {
@@ -152,7 +153,7 @@ namespace MathUtils
   }
   inline double calc_loglik_L2(double sq_e,double sigma2)
   {
-    return -0.5*std::log(2*M_PI*sigma2) - 0.5 * sq_e / sigma2;
+    return -0.5*std::log(2*std::numbers::pi_v<long double>*sigma2) - 0.5 * sq_e / sigma2;
   }
 
   // inverse of pos. def. symmetric matrix
