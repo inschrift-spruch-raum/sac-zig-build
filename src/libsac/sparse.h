@@ -1,16 +1,16 @@
 #pragma once // SPARSEPCM_H
 
+#include "../common/math.h"
+
 #include <algorithm>
 #include <cmath>
 #include <limits>
 #include <span>
 #include <vector>
 
-#include "../common/utils.h"
-
 class SimplePred {
 public:
-  SimplePred()= default;
+  SimplePred() = default;
 
   double Predict() const { return lb; }
 
@@ -24,15 +24,14 @@ class SparsePCM {
   static constexpr double cost_pow = 1;
 
 public:
-  SparsePCM()= default;
+  SparsePCM() = default;
 
-  void Analyse(std::span<const std::int32_t> &buf) {
+  void Analyse(std::span<const std::int32_t>& buf) {
     minval = std::numeric_limits<std::int32_t>::max();
     maxval = std::numeric_limits<std::int32_t>::min();
-    for(const auto val: buf) {
-      minval = std::min(minval, val);
-      maxval = std::max(maxval, val);
-    }
+    const auto [min_it, max_it] = std::ranges::minmax_element(buf);
+    minval = std::min(minval, *min_it);
+    maxval = std::max(maxval, *max_it);
 
     const std::size_t range = maxval - minval + 1;
     used.assign(range, false);
@@ -45,7 +44,8 @@ public:
         ++unique_count;
       }
     }
-    fraction_used = (range > 0) ? (unique_count * 100.0 / static_cast<double>(range)) : 0.0;
+    fraction_used =
+      (range > 0) ? (unique_count * 100.0 / static_cast<double>(range)) : 0.0;
 
     prefix_sum.resize(range + 1);
     prefix_sum[0] = 0;
@@ -67,13 +67,15 @@ public:
   }
 
   std::int32_t map_val(std::int32_t val, std::int32_t p = 0) const {
-    if(val == 0) { return 0;}
+    if(val == 0) { return 0; }
 
     const std::int32_t sgn = MathUtils::sgn(val);
-    const std::int32_t pidx=p - minval;
+    const std::int32_t pidx = p - minval;
 
-    std::int32_t start = pidx + static_cast<std::int32_t>(val > 0) * 1 + static_cast<std::int32_t>(val < 0) * val;
-    std::int32_t end = pidx + static_cast<std::int32_t>(val > 0) * val + static_cast<std::int32_t>(val < 0) * (-1);
+    std::int32_t start = pidx + static_cast<std::int32_t>(val > 0) * 1
+                         + static_cast<std::int32_t>(val < 0) * val;
+    std::int32_t end = pidx + static_cast<std::int32_t>(val > 0) * val
+                       + static_cast<std::int32_t>(val < 0) * (-1);
 
     return sgn * (prefix_sum[end + 1] - prefix_sum[start]);
   }
