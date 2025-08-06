@@ -165,7 +165,9 @@ std::expected<void, AudioFileErr::Err> Lib::Decode(
             << "  Ratio:   " << std::fixed << std::setprecision(3) << bps
             << " bps\n\n"
             << "  Audio MD5: ";
-  for(auto x: md5digest) { std::cout << std::hex << static_cast<std::int32_t>(x); }
+  for(auto x: md5digest) {
+    std::cout << std::hex << static_cast<std::int32_t>(x);
+  }
   std::cout << std::dec << '\n';
 
   std::cout << "Create: '" << output << "': ";
@@ -236,7 +238,9 @@ Lib::List(const std::string& input, FrameCoder::tsac_cfg& config, bool full) {
             << "  Ratio:   " << std::fixed << std::setprecision(3) << bps
             << " bps\n\n"
             << "  Audio MD5: ";
-  for(auto x: md5digest) { std::cout << std::hex << static_cast<std::int32_t>(x); }
+  for(auto x: md5digest) {
+    std::cout << std::hex << static_cast<std::int32_t>(x);
+  }
   std::cout << std::dec << '\n';
 
   if(full) {

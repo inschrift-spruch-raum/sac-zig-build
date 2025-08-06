@@ -1,4 +1,4 @@
-#pragma once  // TIMER_H
+#pragma once // TIMER_H
 
 #include <chrono>
 
@@ -8,19 +8,25 @@ class Timer {
   using durationS = std::chrono::duration<double, std::ratio<1>>;
   using durationMS = std::chrono::duration<double, std::milli>;
   using Timepoint = Clock::time_point;
-  public:
-    void start() {tstart=Clock::now();};
-    void stop() {tstop=Clock::now();};
-    double elapsedMS() {
-      durationMS elapsed=tstop-tstart;
-      return elapsed.count();
-      //cout << std::chrono::duration_cast<double,TimeT>(tstop - tstart).count() << endl;
-      //return std::chrono::duration_cast<TimeT>(tstop - tstart).count();
-    };
-    double elapsedS() {
-      durationS elapsed=tstop-tstart;
-      return elapsed.count();
-    };
-  private:
-    Timepoint tstart,tstop;
+
+public:
+  void start() { tstart = Clock::now(); };
+
+  void stop() { tstop = Clock::now(); };
+
+  double elapsedMS() {
+    durationMS elapsed = tstop - tstart;
+    return elapsed.count();
+    // cout << std::chrono::duration_cast<double,TimeT>(tstop - tstart).count()
+    // << endl; return std::chrono::duration_cast<TimeT>(tstop -
+    // tstart).count();
+  };
+
+  double elapsedS() {
+    durationS elapsed = tstop - tstart;
+    return elapsed.count();
+  };
+
+private:
+  Timepoint tstart, tstop;
 };

@@ -1,7 +1,9 @@
 #include <cassert>
 #include <format>
+#include <numeric>
 #include "de.h"
-#include "../common/utils.h"
+
+#include "../common/math.h"
 
 OptDE::OptDE(const DECfg &cfg,const box_const &parambox,bool verbose)
 :Opt(parambox),cfg(cfg),verbose(verbose)

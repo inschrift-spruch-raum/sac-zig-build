@@ -1,5 +1,7 @@
 #include "vle.h"
 
+#include "../common/math.h"
+
 BitplaneCoder::BitplaneCoder(std::int32_t maxbpn,std::int32_t numsamples)
 :csig0(1<<20),csig1(1<<20),csig2(1<<20),csig3(1<<20),
 cref0(1<<20),cref1(1<<20),cref2(1<<20),cref3(1<<20),
